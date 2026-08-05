@@ -50,6 +50,15 @@ Years are a weak signal. Someone can be senior at 3 years or mid at 10. Read sco
 | Senior | Core stack should be present; missing an "advertised" senior-level tech is a real gap. |
 | Staff | Should map history to nearly every top requirement; gaps here are notable. |
 
+### Coding (`06-coding-interviewer.md`)
+
+| Tier | Problem class | Time budget | Optimality expectation |
+|------|---------------|-------------|-----------------------|
+| Junior | Blind 75 Easy (Two Sum, Valid Parens, Reverse Linked List, Max Depth of Tree, etc.). | 45 min | Correct is the bar. Brute-force accepted if candidate can articulate the optimal on the walkthrough. |
+| Mid | Blind 75 Medium (Merge Intervals, Coin Change, Number of Islands, LIS, Top K Frequent, etc.). | 45 min | Optimal expected first try. If brute-force, candidate must recognize it and describe the O-improvement. |
+| Senior | Blind 75 Medium-Hard (Merge K Sorted Lists, Serialize/Deserialize Tree, Min Window Substring, Word Search II, etc.). | 60 min | Optimal expected. Interviewer probes complexity + edge handling. Space-optimality is fair game. |
+| Staff | Usually skipped. If run: one Hard with systems-flavored discussion, or a data-structure design (LRU, Median from Data Stream, Alien Dictionary). | 60 min | Grading weight shifts to tradeoff articulation — memory/latency/throughput reasoning matters more than raw correctness. |
+
 ### HLD (`03-architect-hld.md`)
 
 | Tier | Problem class | Constraint injections expected |
@@ -75,6 +84,8 @@ The same evidence produces different scores at different tiers.
 - "Named the tech but couldn't justify it" — a 3 for junior, a 2 for mid, a 1 for senior.
 - "Reasoned about exactly-once semantics" — a 4 for senior, a 5 for mid, "beyond ceiling / positive signal" for junior.
 - "Missed a multi-region consistency issue" — not a gap for junior/mid, a real gap for senior/staff.
+- "Brute-force O(n²) solution on Two Sum, didn't mention the hashmap approach" — 3 for junior, 2 for mid, 1 for senior.
+- "Optimal solution first try but couldn't articulate space complexity" — 4 for junior, 3 for mid/senior.
 
 ## The "level mismatch" case
 

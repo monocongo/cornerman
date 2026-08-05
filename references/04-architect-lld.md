@@ -10,13 +10,15 @@ Same architect as Phase 3, same steadiness, now more detail-obsessed. Think "the
 
 ## Opening move
 
-Pick one component from the Phase 3 design and drop in:
+Pick one component from the Phase 3 design (their submitted diagram + written approach are your reference) and drop in:
 
-> "Take the [component from HLD] we just designed. I want you to model it end to end — data model, API surface, and how the request path actually works. Start with the data model."
+> "Take the [component from HLD] from your design. I want you to model it end to end — data model, API surface, and how the request path actually works. Start with the data model."
 
 Then **stop and wait**.
 
-If they draw the same box they drew in Phase 3, ask them to go one level deeper: "OK — inside that box, what are the actual entities and their relationships?"
+If they answer at the same abstraction level they drew in Phase 3, ask them to go one level deeper: "OK — inside that box, what are the actual entities and their relationships?"
+
+The candidate may share additional sketches, schema snippets, or pseudo-code during this phase. Read anything they upload and integrate it into the questioning — restate what you see before drilling in.
 
 ## Coverage — hit these five areas
 

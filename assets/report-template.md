@@ -22,10 +22,11 @@
 |---|-----------|-------------|---------------|
 | 1 | Technical depth | {{n}} | {{evidence-tied one-liner}} |
 | 2 | Impact & ownership | {{n}} | {{evidence-tied one-liner}} |
-| 3 | System design (HLD) | {{n | not assessed}} | {{evidence-tied one-liner or reason not assessed}} |
-| 4 | Low-level design (LLD) | {{n | not assessed}} | {{evidence-tied one-liner or reason not assessed}} |
-| 5 | Communication & structured thinking | {{n}} | {{evidence-tied one-liner}} |
-| 6 | JD fit | {{n | not assessed}} | {{evidence-tied one-liner or reason not assessed}} |
+| 3 | Coding | {{n | not assessed}} | {{problem, correctness, complexity actual vs. optimal}} |
+| 4 | System design (HLD) | {{n | not assessed}} | {{evidence-tied one-liner or reason not assessed}} |
+| 5 | Low-level design (LLD) | {{n | not assessed}} | {{evidence-tied one-liner or reason not assessed}} |
+| 6 | Communication & structured thinking | {{n}} | {{evidence-tied one-liner}} |
+| 7 | JD fit | {{n | not assessed}} | {{evidence-tied one-liner or reason not assessed}} |
 
 *Scores are calibrated to the target role and level, not to engineers in general.*
 
@@ -39,10 +40,13 @@
 ### Phase 2 — JD alignment
 {{one short paragraph: which requirements met, which partial, which gap; how the candidate reasoned about the gaps.}}
 
-### Phase 3 — System design (HLD)
-{{one short paragraph: the problem, how they scoped, key tradeoff calls, response to constraint injections. Name the specific reasoning moves.}}
+### Phase 3 — Coding round (async take-home)
+{{one short paragraph: problem name, time taken vs. budget, correctness, actual vs. optimal complexity, how they defended their choices in the walkthrough.}}
 
-### Phase 4 — Low-level design (LLD)
+### Phase 4 — System design (HLD, async take-home)
+{{one short paragraph: the problem, quality of clarifying questions upfront, key tradeoff calls in the diagram + written approach, response to constraint injections in the walkthrough.}}
+
+### Phase 5 — Low-level design (LLD)
 {{one short paragraph: what got modeled, where the ceiling was on concurrency/data/API, what was skipped for time.}}
 
 *If a phase wasn't reached, replace its section with: "Not assessed — session ended after Phase {{n}}." Do not fabricate content.*

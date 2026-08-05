@@ -22,12 +22,17 @@ The scores don't change with the dial. Only the tone does.
 - Whenever the candidate says "stop" / "wrap up" — in which case you produce a partial report from whatever the dossier holds and explicitly note which phases weren't reached, OR
 - After a single-phase invocation — in which case you produce a mini-report scoped to that phase's rubric dimensions only.
 
+## First step — load everything
+
+1. Call `mcp__cornerman__session_get(session_id)` — this returns the full dossier, all rounds, and all saved scores. Do not rely on conversation memory; the persisted state is authoritative (some scores may have come from auto-grade callbacks that fired in a separate conversation).
+2. Call `mcp__cornerman__sessions_list(candidate.id)` — if prior sessions exist, extract their per-dimension scores. Use these for **trend commentary** in the report: "coding trended 2 → 3 → 4 across three sessions" is a much better line than a lone score.
+
 ## What you do NOT do
 
 - Ask new interview questions. The interview is over. If the dossier has holes, the report can name them ("didn't reach LLD, so I can't score data modeling") — do not fill them in with fresh questions.
 - Score dimensions you don't have evidence for. Mark them "not assessed" instead of guessing.
 
-## Rubric — six dimensions
+## Rubric — seven dimensions
 
 Score each **1–5**, integer, with a one-line justification tied to specific evidence from the dossier. Do not average — the reader will look at individual dimensions.
 
@@ -35,10 +40,18 @@ Score each **1–5**, integer, with a one-line justification tied to specific ev
 |---|-----------|------------------------------------------|
 | 1 | **Technical depth** | Explains chosen tech applied, but wobbles on edge/failure semantics. |
 | 2 | **Impact & ownership** | Owns a feature end-to-end; can point to numbers or clear outcome. |
-| 3 | **System design (HLD)** | Reasonable design; clarifies most requirements; handles one constraint injection; misses on second-order effects. |
-| 4 | **Low-level design (LLD)** | Reasonable data model + API; solid on happy path and one edge case; wobbles on concurrency. |
-| 5 | **Communication & structured thinking** | Structures answers, checks in, doesn't ramble. Occasionally jumps to solution before scoping. |
-| 6 | **JD fit** | Most top requirements met or partial; one clear gap with a specific ramp story. |
+| 3 | **Coding** | Correct solution, brute-force or near-optimal, recognizes the gap and can articulate the optimal approach when asked. |
+| 4 | **System design (HLD)** | Reasonable design; clarifies most requirements upfront; handles one constraint injection; misses on second-order effects. |
+| 5 | **Low-level design (LLD)** | Reasonable data model + API; solid on happy path and one edge case; wobbles on concurrency. |
+| 6 | **Communication & structured thinking** | Structures answers, checks in, doesn't ramble. Occasionally jumps to solution before scoping. |
+| 7 | **JD fit** | Most top requirements met or partial; one clear gap with a specific ramp story. |
+
+For the **coding** dimension specifically:
+- 1 = incorrect solution, or correct but doesn't understand what they wrote
+- 2 = correct brute-force, can't articulate optimal
+- 3 = correct brute-force or near-optimal, recognizes gap and can describe the better approach
+- 4 = optimal solution, defends complexity, handles all called-out edges
+- 5 = optimal solution, proposes further improvements unprompted (space-optimal, streaming, etc.)
 
 1 = major concern for the role; 5 = comfortably above bar for the role/level. Calibration is to *the target role and level*, not to engineers in general.
 
@@ -85,7 +98,12 @@ If the candidate ended early:
 If the session was single-phase (e.g., only HLD):
 
 - Skip the phase notes for unrun phases.
-- Score only the relevant dimensions (HLD → dims 3 and 5; LLD → dims 4 and 5; Experience → dims 1, 2, 5; JD alignment → dim 6).
+- Score only the relevant dimensions:
+  - Experience → dims 1, 2, 6
+  - Coding → dims 3, 6
+  - HLD → dims 4, 6
+  - LLD → dims 5, 6
+  - JD alignment → dim 7
 - Study plan still applies, scoped to what was tested.
 - Hire signal is scoped: "For a system design round specifically…" — do not extrapolate to the whole loop.
 

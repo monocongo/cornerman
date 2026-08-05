@@ -1,0 +1,44 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cornerman logo — a boxing glove">
+  <g fill="currentColor">
+    <!-- Fist / knuckle body -->
+    <path d="M60 62
+             C60 38, 82 30, 108 32
+             C138 34, 156 52, 156 82
+             L156 122
+             C156 132, 148 140, 138 140
+             L72 140
+             C62 140, 54 132, 54 122
+             L54 82
+             C54 74, 56 68, 60 62 Z"/>
+    <!-- Thumb -->
+    <path d="M50 90
+             C38 92, 32 102, 34 118
+             C36 132, 48 138, 60 134
+             L60 96
+             Z"/>
+    <!-- Wrist cuff -->
+    <path d="M60 138
+             L152 138
+             L158 174
+             C158 178, 154 182, 150 182
+             L62 182
+             C58 182, 54 178, 54 174
+             Z"/>
+  </g>
+
+  <!-- Cuff stripe -->
+  <rect x="54" y="152" width="104" height="6" fill="#ffffff" opacity="0.28"/>
+
+  <!-- Knuckle grooves -->
+  <g stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.35">
+    <path d="M82 66 L82 118"/>
+    <path d="M106 62 L106 118"/>
+    <path d="M130 66 L130 118"/>
+  </g>
+
+  <!-- Laces (little X near the top) -->
+  <g stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.55">
+    <path d="M96 46 L120 62"/>
+    <path d="M120 46 L96 62"/>
+  </g>
+</svg>

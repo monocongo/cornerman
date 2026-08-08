@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""Build blind75.json by parsing the jaimin-bariya/blind-75-leetcode README.
+"""Build catalogs/blind75.json by parsing the jaimin-bariya/blind-75-leetcode README.
 
 Run with:
     python build_blind75.py
 
-Writes blind75.json next to this script.
+Writes catalogs/blind75.json next to this script, wrapped with the
+tier_difficulties mapping every Cornerman problem catalog carries
+alongside its `problems` list (see mcp/server.py's pick_problem).
 """
+
 from __future__ import annotations
 
 import json
@@ -92,6 +95,13 @@ DIFFICULTY: dict[str, str] = {
 
 ITEM_RE = re.compile(r"- \[[ x]\] \[([^\]]+)\]\(([^)]+)\)")
 
+TIER_DIFFICULTIES: dict[str, list[str]] = {
+    "junior": ["easy"],
+    "mid": ["medium"],
+    "senior": ["medium", "hard"],
+    "staff": ["hard"],
+}
+
 
 def fetch_readme(local_path: Path | None = None) -> str:
     if local_path and local_path.exists():
@@ -135,8 +145,10 @@ def main() -> int:
     local_readme = here / "blind75-source.md"
     readme = fetch_readme(local_readme if local_readme.exists() else None)
     problems = parse(readme)
-    out = here / "blind75.json"
-    out.write_text(json.dumps(problems, indent=2) + "\n")
+    out = here / "catalogs" / "blind75.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    wrapped = {"tier_difficulties": TIER_DIFFICULTIES, "problems": problems}
+    out.write_text(json.dumps(wrapped, indent=2) + "\n")
     by_diff = {"easy": 0, "medium": 0, "hard": 0}
     for p in problems:
         by_diff[p["difficulty"]] += 1

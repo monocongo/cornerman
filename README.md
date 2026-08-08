@@ -76,11 +76,14 @@ Cornerman will trigger and start with intake.
 cornerman/
 ├── SKILL.md                            # Orchestrator: intake → phase routing → report
 ├── mcp/
-│   ├── server.py                       # Cornerman MCP: sessions, timers, problem picker
+│   ├── server.py                       # Cornerman MCP: sessions, timers, catalog picker
+│   ├── pyproject.toml                  # mcp/ subproject deps (mcp[cli], pytest) for `uv run pytest`
+│   ├── tests/                          # pytest suite for server.py — `cd mcp && uv run pytest`
 │   └── data/
-│       ├── blind75.json                # 71 Blind 75 problems (id, category, difficulty, url)
+│       ├── catalogs/
+│       │   └── blind75.json            # 71 Blind 75 problems, wrapped with tier_difficulties
 │       ├── blind75-source.md           # Original repo README (source of truth)
-│       └── build_blind75.py            # Regenerates blind75.json from the source
+│       └── build_blind75.py            # Regenerates catalogs/blind75.json from the source
 ├── references/
 │   ├── 00-intake-analyst.md            # Session start, resume + JD, seniority classification
 │   ├── 01-experience-interviewer.md    # Project walk + impact probe + technical fallback
@@ -146,6 +149,16 @@ The catalog is derived from [jaimin-bariya/blind-75-leetcode](https://github.com
 ```bash
 cd cornerman/mcp/data && python3 build_blind75.py
 ```
+
+Writes `mcp/data/catalogs/blind75.json`.
+
+### Running the MCP tests
+
+```bash
+cd cornerman/mcp && uv run pytest tests/ -v
+```
+
+`uv` resolves `mcp[cli]` and `pytest` from `mcp/pyproject.toml` automatically — no separate install step.
 
 ## Domain coverage
 

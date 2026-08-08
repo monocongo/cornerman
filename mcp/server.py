@@ -7,8 +7,8 @@
 # ///
 """Cornerman MCP server.
 
-State + timers + Blind 75 picker for the Cornerman interview coach skill.
-SQLite-backed. Runs over stdio.
+State + timers + problem-catalog picker for the Cornerman interview coach
+skill. SQLite-backed. Runs over stdio.
 
 Tools:
   session_start        Create a session, return session_id.
@@ -19,29 +19,32 @@ Tools:
   round_end            Record end of a take-home round; return elapsed_minutes.
   score_save           Persist a 1-5 rubric score for a dimension.
   sessions_list        List past sessions for a candidate with their scores.
-  pick_problem         Return a Blind 75 problem for a seniority tier.
+  pick_problem         Return a problem/scenario from a named catalog for a
+                       seniority tier (default catalog: blind75).
+
+Problem catalogs live under data/catalogs/*.json, one file per catalog
+(e.g. blind75.json, data-modeling.json). Each is a JSON object with
+`tier_difficulties` (tier -> list of difficulty tags valid for that tier
+in this catalog) and `problems` (a list of dicts, each carrying at least
+`id` and `difficulty`; other fields are catalog-specific and passed
+through to the caller as-is).
 """
+
 from __future__ import annotations
 
 import json
 import random
 import sqlite3
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
 from mcp.server.mcpserver import MCPServer
 
 DB_PATH = Path.home() / ".cornerman" / "cornerman.db"
-BLIND75_PATH = Path(__file__).parent / "data" / "blind75.json"
-
-TIER_TO_DIFFICULTIES: dict[str, list[str]] = {
-    "junior": ["easy"],
-    "mid": ["medium"],
-    "senior": ["medium", "hard"],
-    "staff": ["hard"],
-}
+CATALOGS_DIR = Path(__file__).parent / "data" / "catalogs"
+DEFAULT_CATALOG = "blind75"
 
 mcp = MCPServer("cornerman")
 
@@ -56,6 +59,7 @@ def _connect() -> sqlite3.Connection:
             id TEXT PRIMARY KEY,
             candidate_id TEXT NOT NULL,
             target_role TEXT,
+            track TEXT NOT NULL DEFAULT '',
             created_at TEXT NOT NULL,
             dossier TEXT NOT NULL DEFAULT '{}'
         );
@@ -78,11 +82,24 @@ def _connect() -> sqlite3.Connection:
         );
         """
     )
+    _migrate(conn)
     return conn
 
 
+def _migrate(conn: sqlite3.Connection) -> None:
+    """Add columns introduced after a database may already exist on disk.
+
+    CREATE TABLE IF NOT EXISTS is a no-op against an existing table, so a
+    `~/.cornerman/cornerman.db` created before the `track` column existed
+    would silently lack it. Guard with PRAGMA table_info and backfill.
+    """
+    cols = {row["name"] for row in conn.execute("PRAGMA table_info(sessions)")}
+    if "track" not in cols:
+        conn.execute("ALTER TABLE sessions ADD COLUMN track TEXT NOT NULL DEFAULT ''")
+
+
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+    return datetime.now(UTC).isoformat(timespec="seconds")
 
 
 def _set_nested(d: dict, dotted_path: str, value: Any) -> None:
@@ -105,18 +122,24 @@ def _coerce_value(value: str) -> Any:
 
 
 @mcp.tool()
-def session_start(candidate_id: str, target_role: str = "") -> dict:
+def session_start(candidate_id: str, target_role: str = "", track: str = "") -> dict:
     """Create a new interview session.
 
     Call once at intake. Store the returned session_id somewhere durable
     (in the dossier itself) and pass it to every subsequent tool call.
+
+    `track` is the selected track id (e.g. "backend-ic", "data-ai-leadership")
+    once it's known. It's fine to call session_start before the track is
+    confirmed and pass "" — persist the real value into the dossier via
+    session_update once it's decided; this column exists mainly so
+    sessions_list and cross-session trend commentary can filter by track.
     """
     session_id = uuid.uuid4().hex[:12]
     now = _now_iso()
     with _connect() as db:
         db.execute(
-            "INSERT INTO sessions (id, candidate_id, target_role, created_at) VALUES (?, ?, ?, ?)",
-            (session_id, candidate_id, target_role, now),
+            "INSERT INTO sessions (id, candidate_id, target_role, track, created_at) VALUES (?, ?, ?, ?, ?)",
+            (session_id, candidate_id, target_role, track, now),
         )
     return {"session_id": session_id, "created_at": now}
 
@@ -132,22 +155,13 @@ def session_get(session_id: str) -> dict:
         row = db.execute("SELECT * FROM sessions WHERE id = ?", (session_id,)).fetchone()
         if not row:
             return {"error": f"session {session_id} not found"}
-        rounds = [
-            dict(r)
-            for r in db.execute(
-                "SELECT * FROM rounds WHERE session_id = ?", (session_id,)
-            ).fetchall()
-        ]
-        scores = [
-            dict(s)
-            for s in db.execute(
-                "SELECT * FROM scores WHERE session_id = ?", (session_id,)
-            ).fetchall()
-        ]
+        rounds = [dict(r) for r in db.execute("SELECT * FROM rounds WHERE session_id = ?", (session_id,)).fetchall()]
+        scores = [dict(s) for s in db.execute("SELECT * FROM scores WHERE session_id = ?", (session_id,)).fetchall()]
     return {
         "session_id": row["id"],
         "candidate_id": row["candidate_id"],
         "target_role": row["target_role"],
+        "track": row["track"],
         "created_at": row["created_at"],
         "dossier": json.loads(row["dossier"]),
         "rounds": rounds,
@@ -176,9 +190,7 @@ def session_update(session_id: str, path: str, value: str) -> dict:
 
 
 @mcp.tool()
-def round_start(
-    session_id: str, phase: str, problem: str, time_budget_minutes: int
-) -> dict:
+def round_start(session_id: str, phase: str, problem: str, time_budget_minutes: int) -> dict:
     """Record the start of a take-home round.
 
     Returns `start_iso` and `auto_grade_at_iso`. The caller (Cornerman's
@@ -186,15 +198,14 @@ def round_start(
     for a `scheduled-tasks` MCP entry so grading fires even if the
     candidate doesn't return.
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     end_at = now + timedelta(minutes=time_budget_minutes)
     with _connect() as db:
         db.execute(
             """INSERT OR REPLACE INTO rounds
                (session_id, phase, problem, start_iso, end_iso, time_budget_minutes)
                VALUES (?, ?, ?, ?, NULL, ?)""",
-            (session_id, phase, problem, now.isoformat(timespec="seconds"),
-             time_budget_minutes),
+            (session_id, phase, problem, now.isoformat(timespec="seconds"), time_budget_minutes),
         )
     return {
         "session_id": session_id,
@@ -212,7 +223,7 @@ def round_end(session_id: str, phase: str) -> dict:
     Call when the candidate submits (or immediately after grading, if the
     scheduled auto-grade fired).
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     with _connect() as db:
         row = db.execute(
             "SELECT start_iso, time_budget_minutes FROM rounds WHERE session_id = ? AND phase = ?",
@@ -238,12 +249,15 @@ def round_end(session_id: str, phase: str) -> dict:
 
 
 @mcp.tool()
-def score_save(
-    session_id: str, dimension: str, score: int, justification: str
-) -> dict:
+def score_save(session_id: str, dimension: str, score: int, justification: str) -> dict:
     """Persist a 1-5 rubric score for a dimension.
 
-    Dimensions: technical_depth, impact_ownership, coding, hld, lld,
+    Dimension is free text — it just needs to match a dimension `id` in the
+    active track's `rubric` (see tracks/<track>/track.yaml). Reference:
+    backend-ic: technical_depth, impact_ownership, coding, hld, lld,
+    communication, jd_fit. data-ai-leadership: technical_depth,
+    impact_ownership, data_modeling, platform_architecture, ai_ml_systems,
+    governance_risk, insurance_domain_fluency, leadership_altitude,
     communication, jd_fit.
     """
     if not 1 <= score <= 5:
@@ -267,18 +281,17 @@ def sessions_list(candidate_id: str) -> dict:
     """
     with _connect() as db:
         sessions = db.execute(
-            "SELECT id, target_role, created_at FROM sessions WHERE candidate_id = ? ORDER BY created_at DESC",
+            "SELECT id, target_role, track, created_at FROM sessions WHERE candidate_id = ? ORDER BY created_at DESC",
             (candidate_id,),
         ).fetchall()
         out = []
         for s in sessions:
-            scores = db.execute(
-                "SELECT dimension, score FROM scores WHERE session_id = ?", (s["id"],)
-            ).fetchall()
+            scores = db.execute("SELECT dimension, score FROM scores WHERE session_id = ?", (s["id"],)).fetchall()
             out.append(
                 {
                     "session_id": s["id"],
                     "target_role": s["target_role"],
+                    "track": s["track"],
                     "created_at": s["created_at"],
                     "scores": {r["dimension"]: r["score"] for r in scores},
                 }
@@ -286,30 +299,37 @@ def sessions_list(candidate_id: str) -> dict:
     return {"candidate_id": candidate_id, "sessions": out}
 
 
-@mcp.tool()
-def pick_problem(tier: str, exclude_ids: list[str] | None = None) -> dict:
-    """Pick one Blind 75 problem for the given seniority tier.
+def _load_catalog(catalog: str) -> dict | None:
+    path = CATALOGS_DIR / f"{catalog}.json"
+    if not path.exists():
+        return None
+    return json.loads(path.read_text())
 
-    tier: 'junior' | 'mid' | 'senior' | 'staff'.
+
+@mcp.tool()
+def pick_problem(tier: str, catalog: str = DEFAULT_CATALOG, exclude_ids: list[str] | None = None) -> dict:
+    """Pick one problem/scenario from a catalog for the given seniority tier.
+
+    tier: a tier name valid for the chosen catalog (e.g. 'junior' | 'mid' |
+    'senior' | 'staff' for blind75; blind75 has no 'head' tier).
+    catalog: catalog id, matching a file under data/catalogs/ (default
+    'blind75'). Tracks with their own take-home rounds pass their own
+    catalog id, e.g. 'data-modeling'.
     exclude_ids: problem `id`s the candidate has already seen in prior sessions.
-    Returns the problem dict (id, name, category, difficulty, url) or an error.
+    Returns the problem dict (fields vary by catalog; blind75 has id, name,
+    category, difficulty, url) or an error.
     """
     exclude = set(exclude_ids or [])
-    if not BLIND75_PATH.exists():
-        return {"error": f"blind75.json not found at {BLIND75_PATH}"}
-    problems = json.loads(BLIND75_PATH.read_text())
-    difficulties = TIER_TO_DIFFICULTIES.get(tier)
+    data = _load_catalog(catalog)
+    if data is None:
+        return {"error": f"catalog {catalog!r} not found under {CATALOGS_DIR}"}
+    tier_difficulties = data.get("tier_difficulties", {})
+    difficulties = tier_difficulties.get(tier)
     if difficulties is None:
-        return {
-            "error": f"unknown tier {tier!r}; expected one of "
-            f"{sorted(TIER_TO_DIFFICULTIES)}"
-        }
-    candidates = [
-        p for p in problems
-        if p["difficulty"] in difficulties and p["id"] not in exclude
-    ]
+        return {"error": f"unknown tier {tier!r} for catalog {catalog!r}; expected one of {sorted(tier_difficulties)}"}
+    candidates = [p for p in data.get("problems", []) if p["difficulty"] in difficulties and p["id"] not in exclude]
     if not candidates:
-        return {"error": f"no problems available for tier {tier!r}"}
+        return {"error": f"no problems available for tier {tier!r} in catalog {catalog!r}"}
     return random.choice(candidates)
 
 

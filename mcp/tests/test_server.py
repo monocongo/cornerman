@@ -238,3 +238,18 @@ def test_pick_problem_default_catalog_respects_exclude_ids():
     first = server.pick_problem("staff")
     second = server.pick_problem("staff", exclude_ids=[first["id"]])
     assert second["id"] != first["id"]
+
+
+def test_pick_problem_data_modeling_catalog_covers_all_tiers():
+    """The real, shipped data-modeling.json has a problem for every tier."""
+    for tier in ["junior", "mid", "senior", "staff", "head"]:
+        picked = server.pick_problem(tier, catalog="data-modeling")
+        assert "error" not in picked, f"tier {tier}: {picked}"
+        assert picked["difficulty"] == tier
+        assert picked["domain"] in {"pnc_personal_lines", "health"}
+
+
+def test_pick_problem_data_modeling_catalog_respects_exclude_ids():
+    first = server.pick_problem("head", catalog="data-modeling")
+    second = server.pick_problem("head", catalog="data-modeling", exclude_ids=[first["id"]])
+    assert second["id"] != first["id"]

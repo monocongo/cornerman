@@ -58,7 +58,9 @@ phases:
     mode: async_take_home
     announce: "Next is a data modeling round. I'll give you a business scenario; you'll go model it — grain, ERD, DDL or dbt sketch — and paste or upload it when done. Then we'll walk through your choices together."
     catalog: data-modeling
-    question_bank: tracks/data-ai-leadership/question-banks/data-modeling.md
+    question_banks:
+      - tracks/data-ai-leadership/question-banks/data-modeling.md
+      - tracks/data-ai-leadership/question-banks/sql-analytics.md
     time_budget_minutes: { junior: 45, mid: 60, senior: 75, staff: 90, head: 90 }
 
   - id: platform_architecture

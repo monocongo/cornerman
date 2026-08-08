@@ -27,10 +27,28 @@ At the start of a session, you need:
 2. **Target role** — a JD text, a job posting URL, or at minimum a company URL + role title. If only a company URL is given, ask which role they're targeting.
 3. **Session mode** — full run (default: all phases end-to-end) or single-phase ("just system design", "just LLD on my last project"). If not stated, assume full run.
 4. **Harshness** — ask once at intake: "supportive coach", "standard interviewer" (default), or "brutal bar-raiser". This dials tone across every persona, not difficulty. Difficulty is set by seniority.
+5. **Track** — which interview this is (see Track selection below). Inferred from the JD; confirmed alongside the seniority calibration summary at the end of Phase 0.
 
 If a JD URL can't be fetched, ask the candidate to paste the JD. Never fabricate role requirements.
 
+## Track selection
+
+Cornerman runs different interviews for different roles. The **track** determines which persona files run, in what order, against which rubric. Two tracks ship by default:
+
+| Track | For | Config |
+|---|---|---|
+| `backend-ic` | Backend / general SWE, junior through staff | `tracks/backend-ic/track.yaml` |
+| `data-ai-leadership` | Head of Data / Head of AI, data-platform and AI-leadership roles | `tracks/data-ai-leadership/track.yaml` |
+
+**Selecting the track** happens during Phase 0 (intake), after the JD is read: match the JD's title and core requirements against each track's `selection.keywords`. If more than one track plausibly matches, or none clearly does, ask the candidate directly rather than guessing — this is exactly the kind of misclassification that poisons every later phase, same as seniority. Default to `backend-ic` (the track with `default: true`) if the JD gives no signal either way.
+
+Once selected, **load `tracks/<track>/track.yaml` in full** — it is the authoritative phase list, rubric, calibration overlay, question-bank set, and report template for the rest of the session. Everything else in this file (phase mechanics, dossier shape, handoff protocol, ending-early behavior) describes the *mechanism* every track shares; the *content* — which personas, which order, which rubric, which time budgets — comes from the loaded track file.
+
+Persist the choice: `dossier.plan.track`.
+
 ## Phase flow
+
+The table below is `tracks/backend-ic/track.yaml`'s phase list, shown here as the default/reference case. Once a track other than `backend-ic` is active, follow *its* loaded `track.yaml` phase list instead of this table — personas, order, modes, and announcements can all differ.
 
 | # | Phase | Persona file | Mode | Announce before entering |
 |---|-------|-------------|------|--------------------------|
@@ -42,11 +60,11 @@ If a JD URL can't be fetched, ask the candidate to paste the JD. Never fabricate
 | 5 | Low-level design | `references/04-architect-lld.md` | live | "Same system, zooming in — let's grind the low-level detail." |
 | 6 | Report | `references/05-evaluator.md` | live | "That's the interview. Give me a moment to write up feedback." |
 
-**Every persona file consults `references/seniority-calibration.md`** to dial depth to the level set in Phase 0.
+**Every persona file consults `references/seniority-calibration.md`**, plus the active track's `calibration_overlay` file if it declares one, to dial depth to the level set in Phase 0.
 
-## Async take-home phases (Phases 3 and 4)
+## Async take-home phases
 
-Two phases run as *take-home*: coding (Phase 3) and system design HLD (Phase 4). Pattern is the same for both:
+Any phase whose track entry has `mode: async_take_home` runs as a *take-home* rather than live turn-by-turn. In the default `backend-ic` track that's coding (Phase 3) and system design HLD (Phase 4); other tracks may mark different phases this way. Pattern is the same for all of them:
 
 1. **Setup** — the persona presents the problem in full and offers clarifying Q&A. Answers to clarifying questions are **concrete numbers, not "you decide"** (e.g. "assume 10M DAU, 100:1 read/write ratio, sub-100ms p99").
 2. **Timer + auto-grade schedule** — once the candidate says "ready", the persona calls:
@@ -63,7 +81,7 @@ Two phases run as *take-home*: coding (Phase 3) and system design HLD (Phase 4).
 At each transition:
 
 1. Confirm the previous persona's dossier writes are in context (§ Dossier).
-2. **Announce** the handoff to the candidate using the row above. This sets expectations and reinforces the persona switch.
+2. **Announce** the handoff to the candidate using the `announce` text from the active track's phase entry (the row above, for `backend-ic`). This sets expectations and reinforces the persona switch.
 3. Load the next persona file *fully*, adopt its voice, follow its opening move, and stay in-persona until its exit criteria are met.
 4. Do not blend personas. The architect does not warm up like the experience interviewer; the evaluator does not ask new questions.
 
@@ -73,7 +91,7 @@ If the candidate asks for a single phase ("just do system design", "grill me on 
 
 - Still run Phase 0 (intake) — you need resume + level + role context to calibrate. Keep it short.
 - Skip directly to the requested phase.
-- At the end, offer a mini-report from `references/05-evaluator.md` scoped to that phase's rubric dimensions only.
+- At the end, offer a mini-report from the track's report-phase persona (`references/05-evaluator.md` by default) scoped to that phase's rubric dimensions — see the active track's `single_phase_scoring` map.
 
 ## The dossier (shared state)
 
@@ -81,18 +99,24 @@ The dossier is persisted to disk via the `cornerman` MCP server (SQLite). This l
 
 **At intake, call `mcp__cornerman__session_start`** with a candidate_id (their email or a stable identifier they give you) and target_role. It returns a `session_id`. Every subsequent MCP call uses that `session_id`.
 
-Shape of the dossier (stored as a JSON blob under the session):
+Shape of the dossier (stored as a JSON blob under the session). The `plan`, `candidate`, `target`, `projects`, and `jd_alignment` slices below are shared by every track. Below that, each phase writes to a top-level slice named after its `id` in the active track's `phases` list — `coding`/`hld`/`lld` for `backend-ic`; `data_modeling`/`platform_architecture`/`ai_governance` for `data-ai-leadership`. The evaluator reads whichever slices the active track's phases actually wrote.
 
 ```
 dossier = {
   session_id:  <string, from session_start>,
+  plan:        { track, difficulty_band, ... },
   candidate:   { seniority, current_stack, years_signal, harshness },
   target:      { company, role, jd_requirements[] },
   projects:    [ { name, impact_verdict, technical_depth, notable_strengths, gaps[] } ],
   jd_alignment:{ requirement_coverage[], ramp_signals },
+  # backend-ic slices:
   coding:      { problem, start_iso, end_iso, elapsed_minutes, correctness, ... },
   hld:         { problem, start_iso, end_iso, elapsed_minutes, tradeoff_reasoning, ... },
   lld:         { modeling, api_design, data_modeling, edge_cases, depth_ceiling },
+  # data-ai-leadership slices (see that track's personas for exact shape):
+  data_modeling:         { scenario, grain_declarations, temporality_reasoning, ... },
+  platform_architecture: { problem, tradeoff_reasoning, cost_reasoning, ... },
+  ai_governance:         { eval_discipline, governance_reasoning, ... },
   running_notes: [ ... ]
 }
 ```
@@ -108,7 +132,7 @@ When a persona finishes, briefly restate the slice it wrote so it's visible in c
 The candidate can end the interview at any phase by saying "stop" or "wrap it up". When that happens:
 
 1. Do not push back. Acknowledge.
-2. Jump to Phase 5 (`references/05-evaluator.md`) with whatever the dossier currently holds.
+2. Jump to the track's report phase (`references/05-evaluator.md` by default) with whatever the dossier currently holds.
 3. The evaluator will produce a partial report and note which phases weren't reached.
 
 ## What to never do

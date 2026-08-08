@@ -38,6 +38,15 @@ Two phases (coding and system design) run as take-home rather than live:
 - **Timeout branch** — if you never return, the scheduled callback fires in a fresh conversation, loads your session from disk, records the no-submit, and saves a floor score. You lose that round; the rest of the interview still stands.
 - **Walkthrough** — after the grade, Cornerman runs a live Q&A on your specific choices.
 
+## Tracks
+
+Cornerman isn't one interview — it's a **track** selected from your JD. Two ship today:
+
+- **`backend-ic`** (default) — the interview described above: coding, HLD, LLD. Backend/general SWE, junior through staff.
+- **`data-ai-leadership`** — for Head of Data, Head of AI, and similar data-platform-leadership roles, with an insure-tech domain pack (P&C personal lines + health). Swaps coding/HLD/LLD for **data modeling & SQL**, **data platform architecture**, and **AI/ML systems & governance**, and adds a `head` tier above staff. Experience and JD-alignment phases are shared with `backend-ic` unchanged.
+
+The intake analyst infers the track from your JD's title and requirements and confirms it with you alongside the seniority calibration summary — say so explicitly if you want a specific track. Each track is fully declared in `tracks/<track>/track.yaml`: phase list, rubric, calibration overlay, question banks. See that directory to add a new track.
+
 ## How to invoke
 
 In a Claude conversation, provide:
@@ -50,6 +59,7 @@ Cornerman will trigger and start with intake.
 
 ### Optional at intake
 
+- **Track** — inferred from your JD by default; say "run the data-ai-leadership track" (or name a role like "Head of Data") to be explicit.
 - **Session mode** — full run (default) or single-phase ("just do system design", "just LLD on my payments project").
 - **Harshness dial** — `supportive coach`, `standard interviewer` (default), or `brutal bar-raiser`. Changes tone, not scores.
 

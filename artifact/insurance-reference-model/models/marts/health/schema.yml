@@ -1,0 +1,76 @@
+version: 2
+
+models:
+  - name: dim_provider
+    description: "Grain: one row per provider per network-status-effective period."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: network_status_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: provider_id
+        data_type: varchar
+        tests: [not_null]
+      - name: npi
+        data_type: varchar
+        tests: [not_null]
+      - name: provider_name
+        data_type: varchar
+        tests: [not_null]
+      - name: specialty
+        data_type: varchar
+        tests: [not_null]
+      - name: provider_type
+        data_type: varchar
+        tests: [not_null]
+      - name: network_status
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['in_network', 'out_of_network', 'terminated']
+      - name: valid_from
+        data_type: date
+        tests: [not_null]
+      - name: valid_to
+        data_type: date
+      - name: is_current
+        data_type: boolean
+        tests: [not_null]
+
+  - name: dim_benefit_plan
+    description: "Grain: one row per plan per plan-year."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: benefit_plan_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: plan_name
+        data_type: varchar
+        tests: [not_null]
+      - name: plan_year
+        data_type: integer
+        tests: [not_null]
+      - name: plan_type
+        data_type: varchar
+        tests: [not_null]
+      - name: deductible_individual
+        data_type: decimal(10,2)
+        tests: [not_null]
+      - name: oop_max_individual
+        data_type: decimal(10,2)
+        tests: [not_null]
+      - name: valid_from
+        data_type: date
+        tests: [not_null]
+      - name: valid_to
+        data_type: date
+        tests: [not_null]
+      - name: is_current
+        data_type: boolean
+        tests: [not_null]

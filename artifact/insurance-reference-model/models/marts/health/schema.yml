@@ -74,3 +74,33 @@ models:
       - name: is_current
         data_type: boolean
         tests: [not_null]
+
+  - name: dim_member
+    description: "Grain: one row per member, current attributes only."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: member_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: first_name
+        data_type: varchar
+        meta: {phi: true}
+      - name: last_name
+        data_type: varchar
+        meta: {phi: true}
+      - name: date_of_birth
+        data_type: date
+        meta: {phi: true}
+      - name: gender
+        data_type: varchar
+        meta: {phi: true}
+      - name: subscriber_id
+        data_type: varchar
+        tests: [not_null]
+      - name: relationship_to_subscriber
+        data_type: varchar
+        tests: [not_null]
+      - name: state
+        data_type: varchar

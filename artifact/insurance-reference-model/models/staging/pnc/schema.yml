@@ -22,8 +22,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_pnc__policy')
-              field: policy_id
+              arguments:
+                to: ref('stg_pnc__policy')
+                field: policy_id
 
   - name: stg_pnc__coverage
     description: "Grain: one row per policy version per coverage type."
@@ -34,8 +35,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_pnc__policy_version')
-              field: policy_version_id
+              arguments:
+                to: ref('stg_pnc__policy_version')
+                field: policy_version_id
       - name: coverage_type
         tests:
           - accepted_values:
@@ -50,13 +52,15 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_pnc__party')
-              field: party_id
+              arguments:
+                to: ref('stg_pnc__party')
+                field: party_id
       - name: policy_id
         tests:
           - relationships:
-              to: ref('stg_pnc__policy')
-              field: policy_id
+              arguments:
+                to: ref('stg_pnc__policy')
+                field: policy_id
       - name: role_type
         tests:
           - accepted_values:
@@ -71,13 +75,15 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_pnc__policy')
-              field: policy_id
+              arguments:
+                to: ref('stg_pnc__policy')
+                field: policy_id
       - name: claimant_party_id
         tests:
           - relationships:
-              to: ref('stg_pnc__party')
-              field: party_id
+              arguments:
+                to: ref('stg_pnc__party')
+                field: party_id
       - name: status
         tests:
           - accepted_values:
@@ -92,14 +98,16 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_pnc__claim')
-              field: claim_id
+              arguments:
+                to: ref('stg_pnc__claim')
+                field: claim_id
       - name: coverage_id
         tests:
           - not_null
           - relationships:
-              to: ref('stg_pnc__coverage')
-              field: coverage_id
+              arguments:
+                to: ref('stg_pnc__coverage')
+                field: coverage_id
       - name: transaction_type
         tests:
           - accepted_values:

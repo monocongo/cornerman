@@ -57,8 +57,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('dim_policy')
-              field: policy_version_id
+              arguments:
+                to: ref('dim_policy')
+                field: policy_version_id
       - name: policy_id
         data_type: varchar
         tests: [not_null]

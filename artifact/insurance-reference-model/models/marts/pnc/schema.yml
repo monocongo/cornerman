@@ -1,0 +1,81 @@
+version: 2
+
+models:
+  - name: dim_policy
+    description: "Grain: one row per policy per endorsement-effective period."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: policy_version_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: policy_id
+        data_type: varchar
+        tests: [not_null]
+      - name: policy_number
+        data_type: varchar
+        tests: [not_null]
+      - name: line_of_business
+        data_type: varchar
+        tests: [not_null]
+      - name: policy_status
+        data_type: varchar
+        tests: [not_null]
+      - name: version_number
+        data_type: integer
+        tests: [not_null]
+      - name: change_reason
+        data_type: varchar
+        tests: [not_null]
+      - name: term_premium_amount
+        data_type: decimal(10,2)
+        tests: [not_null]
+      - name: garaging_state
+        data_type: varchar
+        tests: [not_null]
+      - name: valid_from
+        data_type: date
+        tests: [not_null]
+      - name: valid_to
+        data_type: date
+      - name: is_current
+        data_type: boolean
+        tests: [not_null]
+
+  - name: dim_coverage
+    description: "Grain: one row per policy version per coverage type."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: coverage_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: policy_version_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_policy')
+              field: policy_version_id
+      - name: policy_id
+        data_type: varchar
+        tests: [not_null]
+      - name: coverage_type
+        data_type: varchar
+        tests: [not_null]
+      - name: limit_amount
+        data_type: decimal(12,2)
+        tests: [not_null]
+      - name: deductible_amount
+        data_type: decimal(10,2)
+        tests: [not_null]
+      - name: valid_from
+        data_type: date
+        tests: [not_null]
+      - name: valid_to
+        data_type: date
+      - name: is_current
+        data_type: boolean
+        tests: [not_null]

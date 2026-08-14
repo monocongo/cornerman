@@ -41,7 +41,8 @@ models:
       - name: coverage_type
         tests:
           - accepted_values:
-              values: ['bodily_injury_liability', 'property_damage_liability', 'collision', 'comprehensive']
+              arguments:
+                values: ['bodily_injury_liability', 'property_damage_liability', 'collision', 'comprehensive']
 
   - name: stg_pnc__policy_party_role
     description: "Grain: one row per party per policy-or-claim per role."
@@ -64,7 +65,8 @@ models:
       - name: role_type
         tests:
           - accepted_values:
-              values: ['named_insured', 'additional_insured', 'driver', 'claimant', 'beneficiary']
+              arguments:
+                values: ['named_insured', 'additional_insured', 'driver', 'claimant', 'beneficiary']
 
   - name: stg_pnc__claim
     description: "Grain: one row per claim."
@@ -87,7 +89,8 @@ models:
       - name: status
         tests:
           - accepted_values:
-              values: ['open', 'closed']
+              arguments:
+                values: ['open', 'closed']
 
   - name: stg_pnc__claim_transaction
     description: "Grain: one row per claim per coverage per transaction per booked_date."
@@ -111,4 +114,5 @@ models:
       - name: transaction_type
         tests:
           - accepted_values:
-              values: ['reserve_set', 'reserve_change', 'payment_issued', 'payment_voided', 'reopened']
+              arguments:
+                values: ['reserve_set', 'reserve_change', 'payment_issued', 'payment_voided', 'reopened']

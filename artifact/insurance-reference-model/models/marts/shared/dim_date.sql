@@ -6,7 +6,7 @@ with spine as (
 )
 
 select
-    date_day,
+    date_day::date as date_day,
     extract(year from date_day)::integer as year_number,
     extract(quarter from date_day)::integer as quarter_number,
     extract(month from date_day)::integer as month_number,

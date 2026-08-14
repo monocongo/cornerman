@@ -48,8 +48,10 @@ models:
     description: "Grain: one row per party per policy-or-claim per role."
     columns:
       - name: policy_party_role_id
+        data_type: varchar
         tests: [not_null, unique]
       - name: party_id
+        data_type: varchar
         tests:
           - not_null
           - relationships:
@@ -57,16 +59,24 @@ models:
                 to: ref('stg_pnc__party')
                 field: party_id
       - name: policy_id
+        data_type: varchar
         tests:
           - relationships:
               arguments:
                 to: ref('stg_pnc__policy')
                 field: policy_id
+      - name: claim_id
+        data_type: varchar
       - name: role_type
+        data_type: varchar
         tests:
           - accepted_values:
               arguments:
                 values: ['named_insured', 'additional_insured', 'driver', 'claimant', 'beneficiary']
+      - name: effective_date
+        data_type: date
+      - name: end_date
+        data_type: date
 
   - name: stg_pnc__claim
     description: "Grain: one row per claim."

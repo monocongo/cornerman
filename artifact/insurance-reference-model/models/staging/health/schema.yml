@@ -1,0 +1,132 @@
+version: 2
+
+models:
+  - name: stg_health__member
+    description: "Grain: one row per member."
+    columns:
+      - name: member_id
+        tests: [not_null, unique]
+
+  - name: stg_health__eligibility_span
+    description: "Grain: one row per member per continuous coverage span."
+    columns:
+      - name: eligibility_span_id
+        tests: [not_null, unique]
+      - name: member_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_health__member')
+                field: member_id
+      - name: benefit_plan_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_health__benefit_plan')
+                field: benefit_plan_id
+
+  - name: stg_health__provider
+    description: "Grain: one row per provider."
+    columns:
+      - name: provider_id
+        tests: [not_null, unique]
+      - name: provider_type
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['individual', 'facility']
+
+  - name: stg_health__provider_network_status
+    description: "Grain: one row per provider per network-status-effective period."
+    columns:
+      - name: network_status_id
+        tests: [not_null, unique]
+      - name: provider_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_health__provider')
+                field: provider_id
+      - name: network_status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['in_network', 'out_of_network', 'terminated']
+
+  - name: stg_health__benefit_plan
+    description: "Grain: one row per plan per plan-year."
+    columns:
+      - name: benefit_plan_id
+        tests: [not_null, unique]
+
+  - name: stg_health__claim
+    description: "Grain: one row per claim."
+    columns:
+      - name: claim_id
+        tests: [not_null, unique]
+      - name: member_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_health__member')
+                field: member_id
+      - name: provider_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_health__provider')
+                field: provider_id
+
+  - name: stg_health__claim_line
+    description: "Grain: one row per claim line, as submitted."
+    columns:
+      - name: claim_line_id
+        tests: [not_null, unique]
+      - name: claim_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_health__claim')
+                field: claim_id
+
+  - name: stg_health__adjudication_event
+    description: "Grain: one row per claim line, per status-transition event, per booked_date."
+    columns:
+      - name: adjudication_event_id
+        tests: [not_null, unique]
+      - name: claim_line_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_health__claim_line')
+                field: claim_line_id
+      - name: event_type
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['received', 'pended', 'approved', 'denied', 'paid', 'adjusted']
+
+  - name: stg_health__authorization
+    description: "Grain: one row per authorization request."
+    columns:
+      - name: authorization_id
+        tests: [not_null, unique]
+      - name: member_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_health__member')
+                field: member_id
+      - name: status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['approved', 'denied', 'expired']

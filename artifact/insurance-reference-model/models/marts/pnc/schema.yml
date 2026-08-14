@@ -142,3 +142,64 @@ models:
         tests: [not_null]
       - name: end_date
         data_type: date
+
+  - name: fct_claim
+    description: "Grain: one row per claim. policy_version_id_at_loss is resolved as of loss_date via as_of_join, never via is_current."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: claim_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: policy_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_pnc__policy')
+                field: policy_id
+      - name: claimant_party_id
+        data_type: varchar
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_insured')
+                field: party_id
+      - name: loss_date
+        data_type: date
+        tests: [not_null]
+      - name: report_date
+        data_type: date
+        tests: [not_null]
+      - name: report_lag_days
+        data_type: bigint
+        tests: [not_null]
+      - name: loss_type
+        data_type: varchar
+        tests: [not_null]
+      - name: status
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['open', 'closed']
+      - name: catastrophe_flag
+        data_type: boolean
+        tests: [not_null]
+      - name: policy_version_id_at_loss
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_policy')
+                field: policy_version_id
+      - name: policy_number
+        data_type: varchar
+        tests: [not_null]
+      - name: garaging_state_at_loss
+        data_type: varchar
+        tests: [not_null]

@@ -1,0 +1,36 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: "Grain: one row per calendar day, 2023-01-01 through 2026-12-31. The only model shared across the P&C and health domains."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: date_day
+        data_type: timestamp
+        tests: [not_null, unique]
+      - name: year_number
+        data_type: integer
+        tests: [not_null]
+      - name: quarter_number
+        data_type: integer
+        tests: [not_null]
+      - name: month_number
+        data_type: integer
+        tests: [not_null]
+      - name: month_name
+        data_type: varchar
+        tests: [not_null]
+      - name: day_of_month
+        data_type: integer
+        tests: [not_null]
+      - name: day_of_week_number
+        data_type: integer
+        tests: [not_null]
+      - name: day_name
+        data_type: varchar
+        tests: [not_null]
+      - name: is_weekend
+        data_type: boolean
+        tests: [not_null]

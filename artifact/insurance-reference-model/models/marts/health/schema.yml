@@ -145,3 +145,43 @@ models:
       - name: is_currently_active
         data_type: boolean
         tests: [not_null]
+
+  - name: fct_authorization
+    description: "Grain: one row per authorization request. valid_from/valid_to is independent of eligibility and service date."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: authorization_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: member_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_member')
+                field: member_id
+      - name: provider_id
+        data_type: varchar
+        tests: [not_null]
+      - name: service_type
+        data_type: varchar
+        tests: [not_null]
+      - name: requested_date
+        data_type: date
+        tests: [not_null]
+      - name: valid_from
+        data_type: date
+        tests: [not_null]
+      - name: valid_to
+        data_type: date
+        tests: [not_null]
+      - name: status
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['approved', 'denied', 'expired']

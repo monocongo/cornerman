@@ -203,3 +203,54 @@ models:
       - name: garaging_state_at_loss
         data_type: varchar
         tests: [not_null]
+
+  - name: fct_claim_transaction
+    description: "Grain: one row per claim, per coverage, per transaction, per booked_date. Append-only ledger; source of the loss-triangle demo query."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: claim_transaction_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: claim_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_claim')
+                field: claim_id
+      - name: coverage_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_coverage')
+                field: coverage_id
+      - name: coverage_type
+        data_type: varchar
+        tests: [not_null]
+      - name: policy_id
+        data_type: varchar
+        tests: [not_null]
+      - name: transaction_type
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['reserve_set', 'reserve_change', 'payment_issued', 'payment_voided', 'reopened']
+      - name: booked_date
+        data_type: date
+        tests: [not_null]
+      - name: amount
+        data_type: decimal(12,2)
+        tests: [not_null]
+      - name: loss_date
+        data_type: date
+        tests: [not_null]
+      - name: report_date
+        data_type: date
+        tests: [not_null]

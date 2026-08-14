@@ -756,8 +756,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_pnc__policy')
-              field: policy_id
+              arguments:
+                to: ref('stg_pnc__policy')
+                field: policy_id
 
   - name: stg_pnc__coverage
     description: "Grain: one row per policy version per coverage type."
@@ -768,8 +769,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_pnc__policy_version')
-              field: policy_version_id
+              arguments:
+                to: ref('stg_pnc__policy_version')
+                field: policy_version_id
       - name: coverage_type
         tests:
           - accepted_values:
@@ -784,13 +786,15 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_pnc__party')
-              field: party_id
+              arguments:
+                to: ref('stg_pnc__party')
+                field: party_id
       - name: policy_id
         tests:
           - relationships:
-              to: ref('stg_pnc__policy')
-              field: policy_id
+              arguments:
+                to: ref('stg_pnc__policy')
+                field: policy_id
       - name: role_type
         tests:
           - accepted_values:
@@ -805,13 +809,15 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_pnc__policy')
-              field: policy_id
+              arguments:
+                to: ref('stg_pnc__policy')
+                field: policy_id
       - name: claimant_party_id
         tests:
           - relationships:
-              to: ref('stg_pnc__party')
-              field: party_id
+              arguments:
+                to: ref('stg_pnc__party')
+                field: party_id
       - name: status
         tests:
           - accepted_values:
@@ -826,14 +832,16 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_pnc__claim')
-              field: claim_id
+              arguments:
+                to: ref('stg_pnc__claim')
+                field: claim_id
       - name: coverage_id
         tests:
           - not_null
           - relationships:
-              to: ref('stg_pnc__coverage')
-              field: coverage_id
+              arguments:
+                to: ref('stg_pnc__coverage')
+                field: coverage_id
       - name: transaction_type
         tests:
           - accepted_values:
@@ -1006,8 +1014,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('dim_policy')
-              field: policy_version_id
+              arguments:
+                to: ref('dim_policy')
+                field: policy_version_id
       - name: policy_id
         data_type: varchar
         tests: [not_null]
@@ -1175,14 +1184,16 @@ from {{ ref('stg_pnc__policy_party_role') }}
         tests:
           - not_null
           - relationships:
-              to: ref('dim_insured')
-              field: party_id
+              arguments:
+                to: ref('dim_insured')
+                field: party_id
       - name: policy_id
         data_type: varchar
         tests:
           - relationships:
-              to: ref('stg_pnc__policy')
-              field: policy_id
+              arguments:
+                to: ref('stg_pnc__policy')
+                field: policy_id
       - name: claim_id
         data_type: varchar
       - name: role_type
@@ -1268,14 +1279,16 @@ from claims c
         tests:
           - not_null
           - relationships:
-              to: ref('stg_pnc__policy')
-              field: policy_id
+              arguments:
+                to: ref('stg_pnc__policy')
+                field: policy_id
       - name: claimant_party_id
         data_type: varchar
         tests:
           - relationships:
-              to: ref('dim_insured')
-              field: party_id
+              arguments:
+                to: ref('dim_insured')
+                field: party_id
       - name: loss_date
         data_type: date
         tests: [not_null]
@@ -1302,8 +1315,9 @@ from claims c
         tests:
           - not_null
           - relationships:
-              to: ref('dim_policy')
-              field: policy_version_id
+              arguments:
+                to: ref('dim_policy')
+                field: policy_version_id
       - name: policy_number
         data_type: varchar
         tests: [not_null]
@@ -1388,15 +1402,17 @@ join {{ ref('stg_pnc__claim') }} c on ct.claim_id = c.claim_id
         tests:
           - not_null
           - relationships:
-              to: ref('fct_claim')
-              field: claim_id
+              arguments:
+                to: ref('fct_claim')
+                field: claim_id
       - name: coverage_id
         data_type: varchar
         tests:
           - not_null
           - relationships:
-              to: ref('dim_coverage')
-              field: coverage_id
+              arguments:
+                to: ref('dim_coverage')
+                field: coverage_id
       - name: coverage_type
         data_type: varchar
         tests: [not_null]
@@ -2023,14 +2039,16 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_health__member')
-              field: member_id
+              arguments:
+                to: ref('stg_health__member')
+                field: member_id
       - name: benefit_plan_id
         tests:
           - not_null
           - relationships:
-              to: ref('stg_health__benefit_plan')
-              field: benefit_plan_id
+              arguments:
+                to: ref('stg_health__benefit_plan')
+                field: benefit_plan_id
 
   - name: stg_health__provider
     description: "Grain: one row per provider."
@@ -2051,8 +2069,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_health__provider')
-              field: provider_id
+              arguments:
+                to: ref('stg_health__provider')
+                field: provider_id
       - name: network_status
         tests:
           - accepted_values:
@@ -2073,14 +2092,16 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_health__member')
-              field: member_id
+              arguments:
+                to: ref('stg_health__member')
+                field: member_id
       - name: provider_id
         tests:
           - not_null
           - relationships:
-              to: ref('stg_health__provider')
-              field: provider_id
+              arguments:
+                to: ref('stg_health__provider')
+                field: provider_id
 
   - name: stg_health__claim_line
     description: "Grain: one row per claim line, as submitted."
@@ -2091,8 +2112,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_health__claim')
-              field: claim_id
+              arguments:
+                to: ref('stg_health__claim')
+                field: claim_id
 
   - name: stg_health__adjudication_event
     description: "Grain: one row per claim line, per status-transition event, per booked_date."
@@ -2103,8 +2125,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_health__claim_line')
-              field: claim_line_id
+              arguments:
+                to: ref('stg_health__claim_line')
+                field: claim_line_id
       - name: event_type
         tests:
           - accepted_values:
@@ -2119,8 +2142,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_health__member')
-              field: member_id
+              arguments:
+                to: ref('stg_health__member')
+                field: member_id
       - name: status
         tests:
           - accepted_values:
@@ -2422,15 +2446,17 @@ from {{ ref('stg_health__eligibility_span') }}
         tests:
           - not_null
           - relationships:
-              to: ref('dim_member')
-              field: member_id
+              arguments:
+                to: ref('dim_member')
+                field: member_id
       - name: benefit_plan_id
         data_type: varchar
         tests:
           - not_null
           - relationships:
-              to: ref('dim_benefit_plan')
-              field: benefit_plan_id
+              arguments:
+                to: ref('dim_benefit_plan')
+                field: benefit_plan_id
       - name: start_date
         data_type: date
         tests: [not_null]
@@ -2509,8 +2535,9 @@ from {{ ref('stg_health__authorization') }}
         tests:
           - not_null
           - relationships:
-              to: ref('dim_member')
-              field: member_id
+              arguments:
+                to: ref('dim_member')
+                field: member_id
       - name: provider_id
         data_type: varchar
         tests: [not_null]
@@ -2624,8 +2651,9 @@ left join {{ ref('dim_benefit_plan') }} bp on es.benefit_plan_id = bp.benefit_pl
         tests:
           - not_null
           - relationships:
-              to: ref('stg_health__claim')
-              field: claim_id
+              arguments:
+                to: ref('stg_health__claim')
+                field: claim_id
       - name: line_number
         data_type: integer
         tests: [not_null]
@@ -2648,8 +2676,9 @@ left join {{ ref('dim_benefit_plan') }} bp on es.benefit_plan_id = bp.benefit_pl
         tests:
           - not_null
           - relationships:
-              to: ref('dim_member')
-              field: member_id
+              arguments:
+                to: ref('dim_member')
+                field: member_id
       - name: provider_id
         data_type: varchar
         tests: [not_null]
@@ -2736,8 +2765,9 @@ join {{ ref('stg_health__claim_line') }} cl on ae.claim_line_id = cl.claim_line_
         tests:
           - not_null
           - relationships:
-              to: ref('fct_health_claim_line')
-              field: claim_line_id
+              arguments:
+                to: ref('fct_health_claim_line')
+                field: claim_line_id
       - name: claim_id
         data_type: varchar
         tests: [not_null]

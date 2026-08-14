@@ -254,3 +254,22 @@ models:
       - name: report_date
         data_type: date
         tests: [not_null]
+
+  - name: fct_premium_earned
+    description: "Grain: one row per policy, per coverage, per day of accrual. No PII columns -- enforced by a dbt test."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: policy_id
+        data_type: varchar
+        tests: [not_null]
+      - name: accrual_date
+        data_type: date
+        tests: [not_null]
+      - name: coverage_type
+        data_type: varchar
+        tests: [not_null]
+      - name: earned_premium_amount
+        data_type: decimal(18,2)
+        tests: [not_null]

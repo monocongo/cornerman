@@ -104,3 +104,44 @@ models:
         tests: [not_null]
       - name: state
         data_type: varchar
+
+  - name: fct_eligibility_span
+    description: "Grain: one row per member per continuous coverage span."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: eligibility_span_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: member_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_member')
+                field: member_id
+      - name: benefit_plan_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_benefit_plan')
+                field: benefit_plan_id
+      - name: start_date
+        data_type: date
+        tests: [not_null]
+      - name: end_date
+        data_type: date
+      - name: span_reason
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['new_enrollment', 'renewal', 'reenrollment', 'termination']
+      - name: is_currently_active
+        data_type: boolean
+        tests: [not_null]

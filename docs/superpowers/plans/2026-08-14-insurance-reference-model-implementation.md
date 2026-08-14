@@ -874,10 +874,13 @@ git commit -m "feat: add P&C staging models"
 **Interfaces:**
 - Consumes: `ref('stg_pnc__policy')`, `ref('stg_pnc__policy_version')`, `ref('stg_pnc__coverage')`.
 - Produces: the `as_of_join(fact_alias, fact_date_column, dim_relation, dim_alias, key_columns,
-  valid_from_column='valid_from', valid_to_column='valid_to')` macro, used by every later fact
-  that joins an SCD2 dimension (Tasks 8, 10, 17). Produces `ref('dim_policy')` keyed on
-  `policy_version_id` with `valid_from`/`valid_to`/`is_current`, and `ref('dim_coverage')` keyed on
-  `coverage_id`, both consumed by Tasks 8–10.
+  valid_from_column='valid_from', valid_to_column='valid_to')` macro, called directly by Tasks 8
+  and 17 (fact rows joining an SCD2 dimension on an already-known date). Task 10
+  (`fct_premium_earned`) does **not** call this macro — it is a window-expansion accrual fact
+  that generates its own calendar rows from `dim_policy`/`dim_coverage`'s `valid_from`/`valid_to`
+  windows, a different but equally valid temporal pattern; see Task 10's model comment. Produces
+  `ref('dim_policy')` keyed on `policy_version_id` with `valid_from`/`valid_to`/`is_current`, and
+  `ref('dim_coverage')` keyed on `coverage_id`, both consumed by Tasks 8–10.
 
 - [ ] **Step 1: Write the macro**
 
@@ -1455,6 +1458,10 @@ git commit -m "feat: add fct_claim_transaction ledger fact"
 ```sql
 -- Grain: one row per policy, per coverage, per day of accrual. Finance-facing; carries no PII --
 -- enforced by tests/assert_fct_premium_earned_excludes_pii.sql, not a comment.
+-- This is a window-expansion accrual fact, not an as_of_join usage: it generates one row per
+-- calendar day directly from dim_policy/dim_coverage's own valid_from/valid_to windows, rather
+-- than joining an independently-dated fact row to those dimensions. Still never joins on
+-- is_current -- the windows themselves drive which days belong to which coverage.
 with policy_days as (
     select
         dp.policy_id,
@@ -3341,7 +3348,8 @@ Expected: completes with no errors.
   counts, `fct_claim`/`fct_health_claim_line` grain, CI file location).
 - **Four non-negotiable goals** (Global Constraints): grain declared per model (every model's
   leading comment + `schema.yml` description) — done throughout; triangles from `GROUP BY` — Task
-  20; SCD2 joined on effective date not `is_current` — Tasks 8, 10, 17 via `as_of_join`; PII/PHI
+  20; SCD2 joined on effective date not `is_current` — Tasks 8 and 17 via `as_of_join`, Task 10 via
+  its own window-expansion join on `valid_from`/`valid_to` (never `is_current` there either); PII/PHI
   boundary as a test — Tasks 10, 18.
 - **Type consistency check:** `as_of_join`'s signature
   (`fact_alias, fact_date_column, dim_relation, dim_alias, key_columns, valid_from_column='valid_from', valid_to_column='valid_to'`)

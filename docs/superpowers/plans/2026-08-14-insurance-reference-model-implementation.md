@@ -775,7 +775,8 @@ models:
       - name: coverage_type
         tests:
           - accepted_values:
-              values: ['bodily_injury_liability', 'property_damage_liability', 'collision', 'comprehensive']
+              arguments:
+                values: ['bodily_injury_liability', 'property_damage_liability', 'collision', 'comprehensive']
 
   - name: stg_pnc__policy_party_role
     description: "Grain: one row per party per policy-or-claim per role."
@@ -798,7 +799,8 @@ models:
       - name: role_type
         tests:
           - accepted_values:
-              values: ['named_insured', 'additional_insured', 'driver', 'claimant', 'beneficiary']
+              arguments:
+                values: ['named_insured', 'additional_insured', 'driver', 'claimant', 'beneficiary']
 
   - name: stg_pnc__claim
     description: "Grain: one row per claim."
@@ -821,7 +823,8 @@ models:
       - name: status
         tests:
           - accepted_values:
-              values: ['open', 'closed']
+              arguments:
+                values: ['open', 'closed']
 
   - name: stg_pnc__claim_transaction
     description: "Grain: one row per claim per coverage per transaction per booked_date."
@@ -845,7 +848,8 @@ models:
       - name: transaction_type
         tests:
           - accepted_values:
-              values: ['reserve_set', 'reserve_change', 'payment_issued', 'payment_voided', 'reopened']
+              arguments:
+                values: ['reserve_set', 'reserve_change', 'payment_issued', 'payment_voided', 'reopened']
 ```
 
 - [ ] **Step 3: Run and test**
@@ -1306,7 +1310,8 @@ from claims c
         tests:
           - not_null
           - accepted_values:
-              values: ['open', 'closed']
+              arguments:
+                values: ['open', 'closed']
       - name: catastrophe_flag
         data_type: boolean
         tests: [not_null]
@@ -1424,7 +1429,8 @@ join {{ ref('stg_pnc__claim') }} c on ct.claim_id = c.claim_id
         tests:
           - not_null
           - accepted_values:
-              values: ['reserve_set', 'reserve_change', 'payment_issued', 'payment_voided', 'reopened']
+              arguments:
+                values: ['reserve_set', 'reserve_change', 'payment_issued', 'payment_voided', 'reopened']
       - name: booked_date
         data_type: date
         tests: [not_null]
@@ -2058,7 +2064,8 @@ models:
       - name: provider_type
         tests:
           - accepted_values:
-              values: ['individual', 'facility']
+              arguments:
+                values: ['individual', 'facility']
 
   - name: stg_health__provider_network_status
     description: "Grain: one row per provider per network-status-effective period."
@@ -2075,7 +2082,8 @@ models:
       - name: network_status
         tests:
           - accepted_values:
-              values: ['in_network', 'out_of_network', 'terminated']
+              arguments:
+                values: ['in_network', 'out_of_network', 'terminated']
 
   - name: stg_health__benefit_plan
     description: "Grain: one row per plan per plan-year."
@@ -2131,7 +2139,8 @@ models:
       - name: event_type
         tests:
           - accepted_values:
-              values: ['received', 'pended', 'approved', 'denied', 'paid', 'adjusted']
+              arguments:
+                values: ['received', 'pended', 'approved', 'denied', 'paid', 'adjusted']
 
   - name: stg_health__authorization
     description: "Grain: one row per authorization request."
@@ -2148,7 +2157,8 @@ models:
       - name: status
         tests:
           - accepted_values:
-              values: ['approved', 'denied', 'expired']
+              arguments:
+                values: ['approved', 'denied', 'expired']
 ```
 
 - [ ] **Step 3: Run and test**
@@ -2260,7 +2270,8 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['in_network', 'out_of_network', 'terminated']
+              arguments:
+                values: ['in_network', 'out_of_network', 'terminated']
       - name: valid_from
         data_type: date
         tests: [not_null]
@@ -2467,7 +2478,8 @@ from {{ ref('stg_health__eligibility_span') }}
         tests:
           - not_null
           - accepted_values:
-              values: ['new_enrollment', 'renewal', 'reenrollment', 'termination']
+              arguments:
+                values: ['new_enrollment', 'renewal', 'reenrollment', 'termination']
       - name: is_currently_active
         data_type: boolean
         tests: [not_null]
@@ -2558,7 +2570,8 @@ from {{ ref('stg_health__authorization') }}
         tests:
           - not_null
           - accepted_values:
-              values: ['approved', 'denied', 'expired']
+              arguments:
+                values: ['approved', 'denied', 'expired']
 ```
 
 - [ ] **Step 3: Run and test**
@@ -2776,7 +2789,8 @@ join {{ ref('stg_health__claim_line') }} cl on ae.claim_line_id = cl.claim_line_
         tests:
           - not_null
           - accepted_values:
-              values: ['received', 'pended', 'approved', 'denied', 'paid', 'adjusted']
+              arguments:
+                values: ['received', 'pended', 'approved', 'denied', 'paid', 'adjusted']
       - name: booked_date
         data_type: date
         tests: [not_null]

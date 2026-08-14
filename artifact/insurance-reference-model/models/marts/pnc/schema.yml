@@ -107,3 +107,38 @@ models:
         meta: {pii: true}
       - name: state
         data_type: varchar
+
+  - name: fct_policy_party_role
+    description: "Grain: one row per party, per policy or claim, per role."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: policy_party_role_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: party_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_insured')
+                field: party_id
+      - name: policy_id
+        data_type: varchar
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_pnc__policy')
+                field: policy_id
+      - name: claim_id
+        data_type: varchar
+      - name: role_type
+        data_type: varchar
+        tests: [not_null]
+      - name: effective_date
+        data_type: date
+        tests: [not_null]
+      - name: end_date
+        data_type: date

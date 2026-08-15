@@ -240,3 +240,41 @@ models:
         data_type: varchar
       - name: benefit_plan_type_at_service
         data_type: varchar
+
+  - name: fct_adjudication_event
+    description: "Grain: one row per claim line, per status-transition event, per booked_date. Append-only ledger; source of the development-triangle demo query. No PHI columns -- enforced by a dbt test."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: adjudication_event_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: claim_line_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_health_claim_line')
+                field: claim_line_id
+      - name: claim_id
+        data_type: varchar
+        tests: [not_null]
+      - name: event_type
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['received', 'pended', 'approved', 'denied', 'paid', 'adjusted']
+      - name: booked_date
+        data_type: date
+        tests: [not_null]
+      - name: paid_amount
+        data_type: decimal(10,2)
+      - name: denial_reason
+        data_type: varchar
+      - name: service_date
+        data_type: date
+        tests: [not_null]

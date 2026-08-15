@@ -3233,7 +3233,7 @@ order by service_period, development_month
 
 ```bash
 cd ~/git/cornerman/artifact/insurance-reference-model
-uv run dbt compile --select analyses --profiles-dir .
+uv run dbt compile --select "resource_type:analysis" --profiles-dir .
 uv run dbt show --select pnc_loss_triangle --profiles-dir . --limit 50
 uv run dbt show --select health_development_triangle --profiles-dir . --limit 50
 ```

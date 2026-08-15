@@ -10,6 +10,9 @@ select
     ns.network_status,
     ns.effective_date as valid_from,
     ns.end_date as valid_to,
-    (ns.end_date is null) as is_current
+    (
+        current_date >= ns.effective_date
+        and (ns.end_date is null or current_date < ns.end_date)
+    ) as is_current
 from {{ ref('stg_health__provider_network_status') }} ns
 join {{ ref('stg_health__provider') }} p on ns.provider_id = p.provider_id

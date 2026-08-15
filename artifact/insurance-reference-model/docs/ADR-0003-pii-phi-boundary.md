@@ -42,9 +42,14 @@ masking mechanism would solve a problem this artifact doesn't have.
   explicit goal — a comment doesn't fail a build.
 
 ## Consequences
-- Adding a new sensitive column to `dim_insured` or `dim_member` requires only tagging it — the
-  existing tests don't need to change, since the forbidden-column lists reference the *protected*
-  marts' columns, not the source-of-truth dimensions.
+- Adding a new sensitive column to `dim_insured` or `dim_member` requires two steps: tagging it
+  `meta: {pii: true}`/`{phi: true}` for documentation, AND adding its name to the forbidden-column
+  list in the relevant test file(s) (`tests/assert_fct_premium_earned_excludes_pii.sql`,
+  `tests/assert_fct_adjudication_event_excludes_phi.sql`). The tag alone provides no enforcement —
+  the forbidden lists are independent, hard-coded Jinja literals, not derived from the `meta` tags.
+  A future enhancement could derive the forbidden list directly from `meta: {pii: true}`/`{phi:
+  true}` tags via `graph.nodes`, making the tag itself the enforcement mechanism — out of scope for
+  this artifact.
 - If a future column on `fct_premium_earned` or `fct_adjudication_event` needs to be added to the
   forbidden list, that's a one-line edit to the test file — the enforcement mechanism itself
   doesn't need to change.

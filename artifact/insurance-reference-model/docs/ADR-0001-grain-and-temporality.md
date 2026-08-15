@@ -29,7 +29,11 @@ as-of-date joins between the two.
    change, one row per plan-year), and `dim_policy`/`dim_coverage`/`dim_provider`/
    `dim_benefit_plan` simply select from it with `valid_from`/`valid_to`/`is_current` columns. The
    SCD2 *shape* (a queryable "as of any date" dimension) is preserved; only the *mechanism* that
-   produces it differs from the original design's plan to use dbt `snapshot`.
+   produces it differs from the original design's plan to use dbt `snapshot`. All `valid_to`/
+   `end_date` columns across both domains use an exclusive-end convention (a populated end date is
+   the first date no longer covered, matching the next period's start date exactly); `is_current`/
+   `is_currently_active` flags consistently mean "covers `current_date`," not "the most recent
+   known version."
 3. **Facts join SCD2 dimensions on effective date via a shared `as_of_join` macro, never on
    `is_current`.** `fct_claim` resolves `policy_version_id_at_loss` from `dim_policy` as of
    `loss_date`; `fct_health_claim_line` resolves provider network status and benefit plan as of

@@ -134,9 +134,18 @@ models:
                 field: policy_id
       - name: claim_id
         data_type: varchar
+        tests:
+          - relationships:
+              arguments:
+                to: ref('fct_claim')
+                field: claim_id
       - name: role_type
         data_type: varchar
-        tests: [not_null]
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['named_insured', 'additional_insured', 'driver', 'claimant', 'beneficiary']
       - name: effective_date
         data_type: date
         tests: [not_null]

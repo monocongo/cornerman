@@ -9,10 +9,7 @@ select
     b1.effective_date as valid_from,
     b1.expiration_date as valid_to,
     (
-        b1.expiration_date = (
-            select max(b2.expiration_date)
-            from {{ ref('stg_health__benefit_plan') }} b2
-            where b2.plan_name = b1.plan_name
-        )
+        current_date >= b1.effective_date
+        and (b1.expiration_date is null or current_date < b1.expiration_date)
     ) as is_current
 from {{ ref('stg_health__benefit_plan') }} b1

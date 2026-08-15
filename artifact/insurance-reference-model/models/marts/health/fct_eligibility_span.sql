@@ -8,5 +8,8 @@ select
     start_date,
     end_date,
     span_reason,
-    (end_date is null) as is_currently_active
+    (
+        current_date >= start_date
+        and (end_date is null or current_date < end_date)
+    ) as is_currently_active
 from {{ ref('stg_health__eligibility_span') }}

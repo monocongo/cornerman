@@ -15,11 +15,8 @@ select
     pv.effective_date as valid_from,
     pv.expiration_date as valid_to,
     (
-        pv.expiration_date = (
-            select max(pv2.expiration_date)
-            from {{ ref('stg_pnc__policy_version') }} pv2
-            where pv2.policy_id = pv.policy_id
-        )
+        current_date >= pv.effective_date
+        and (pv.expiration_date is null or current_date < pv.expiration_date)
     ) as is_current
 from {{ ref('stg_pnc__policy_version') }} pv
 join {{ ref('stg_pnc__policy') }} p on pv.policy_id = p.policy_id

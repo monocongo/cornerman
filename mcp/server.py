@@ -95,7 +95,11 @@ def _migrate(conn: sqlite3.Connection) -> None:
     """
     cols = {row["name"] for row in conn.execute("PRAGMA table_info(sessions)")}
     if "track" not in cols:
-        conn.execute("ALTER TABLE sessions ADD COLUMN track TEXT NOT NULL DEFAULT ''")
+        try:
+            conn.execute("ALTER TABLE sessions ADD COLUMN track TEXT NOT NULL DEFAULT ''")
+        except sqlite3.OperationalError as e:
+            if "duplicate column name" not in str(e):
+                raise
 
 
 def _now_iso() -> str:
@@ -300,10 +304,13 @@ def sessions_list(candidate_id: str) -> dict:
 
 
 def _load_catalog(catalog: str) -> dict | None:
-    path = CATALOGS_DIR / f"{catalog}.json"
-    if not path.exists():
+    path = (CATALOGS_DIR / f"{catalog}.json").resolve()
+    if not path.is_relative_to(CATALOGS_DIR.resolve()) or not path.exists():
         return None
-    return json.loads(path.read_text())
+    try:
+        return json.loads(path.read_text())
+    except json.JSONDecodeError:
+        return None
 
 
 @mcp.tool()
@@ -327,7 +334,9 @@ def pick_problem(tier: str, catalog: str = DEFAULT_CATALOG, exclude_ids: list[st
     difficulties = tier_difficulties.get(tier)
     if difficulties is None:
         return {"error": f"unknown tier {tier!r} for catalog {catalog!r}; expected one of {sorted(tier_difficulties)}"}
-    candidates = [p for p in data.get("problems", []) if p["difficulty"] in difficulties and p["id"] not in exclude]
+    candidates = [
+        p for p in data.get("problems", []) if p.get("difficulty") in difficulties and p.get("id") not in exclude
+    ]
     if not candidates:
         return {"error": f"no problems available for tier {tier!r} in catalog {catalog!r}"}
     return random.choice(candidates)

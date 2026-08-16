@@ -172,6 +172,21 @@ def test_migration_adds_track_column_without_losing_data(tmp_path, monkeypatch):
     assert got["dossier"]["candidate"]["seniority"] == "staff"
 
 
+def test_migrate_is_safe_to_run_twice_against_same_connection(tmp_path, monkeypatch):
+    """Simulates the race where two _connect() calls both see `track` missing
+    before either ALTER TABLE commits — the second ALTER TABLE must not raise."""
+    db_path = tmp_path / "race.db"
+    monkeypatch.setattr(server, "DB_PATH", db_path)
+
+    conn = server._connect()
+    try:
+        server._migrate(conn)  # second run against an already-migrated schema
+        cols = {row["name"] for row in conn.execute("PRAGMA table_info(sessions)")}
+        assert "track" in cols
+    finally:
+        conn.close()
+
+
 # ---------------------------------------------------------------------------
 # pick_problem — catalog selection, tiers, exclusion
 # ---------------------------------------------------------------------------
@@ -253,3 +268,36 @@ def test_pick_problem_data_modeling_catalog_respects_exclude_ids():
     first = server.pick_problem("head", catalog="data-modeling")
     second = server.pick_problem("head", catalog="data-modeling", exclude_ids=[first["id"]])
     assert second["id"] != first["id"]
+
+
+def test_pick_problem_rejects_catalog_path_traversal(widgets_catalog, tmp_path):
+    secret = tmp_path / "secret.json"
+    secret.write_text(json.dumps({"tier_difficulties": {}, "problems": []}))
+    result = server.pick_problem("junior", catalog="../secret")
+    assert "error" in result
+
+
+def test_pick_problem_rejects_absolute_catalog_path(widgets_catalog, tmp_path):
+    secret = tmp_path / "secret.json"
+    secret.write_text(json.dumps({"tier_difficulties": {}, "problems": []}))
+    result = server.pick_problem("junior", catalog=str(secret)[:-5])
+    assert "error" in result
+
+
+def test_pick_problem_malformed_catalog_json_returns_error(widgets_catalog):
+    (widgets_catalog / "broken.json").write_text("{not valid json")
+    result = server.pick_problem("junior", catalog="broken")
+    assert "error" in result
+
+
+def test_pick_problem_problem_missing_difficulty_key_is_skipped_not_crashed(widgets_catalog):
+    (widgets_catalog / "sparse.json").write_text(
+        json.dumps(
+            {
+                "tier_difficulties": {"junior": ["easy"]},
+                "problems": [{"id": "no-difficulty"}, {"id": "w1", "difficulty": "easy"}],
+            }
+        )
+    )
+    result = server.pick_problem("junior", catalog="sparse")
+    assert result["id"] == "w1"

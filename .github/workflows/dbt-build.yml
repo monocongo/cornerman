@@ -2,7 +2,7 @@ name: dbt build
 
 on:
   push:
-    branches: [feature/data-ai-leadership-track]
+    branches: [main]
     paths:
       - "artifact/insurance-reference-model/**"
       - ".github/workflows/dbt-build.yml"
@@ -10,6 +10,9 @@ on:
     paths:
       - "artifact/insurance-reference-model/**"
       - ".github/workflows/dbt-build.yml"
+
+permissions:
+  contents: read
 
 jobs:
   dbt-build:

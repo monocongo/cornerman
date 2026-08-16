@@ -99,6 +99,7 @@ models:
       - name: subscriber_id
         data_type: varchar
         tests: [not_null]
+        meta: {phi: true}
       - name: relationship_to_subscriber
         data_type: varchar
         tests: [not_null]

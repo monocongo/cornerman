@@ -35,4 +35,7 @@ select
 from claim_lines cl
 {{ as_of_join('cl', 'service_date', ref('dim_provider'), 'dp', ['provider_id']) }}
 {{ as_of_join('cl', 'service_date', ref('fct_eligibility_span'), 'es', ['member_id'], valid_from_column='start_date', valid_to_column='end_date') }}
-left join {{ ref('dim_benefit_plan') }} bp on es.benefit_plan_id = bp.benefit_plan_id
+left join {{ ref('dim_benefit_plan') }} as bp
+    on es.benefit_plan_id = bp.benefit_plan_id
+    and cl.service_date >= bp.valid_from
+    and (cl.service_date < bp.valid_to or bp.valid_to is null)

@@ -1,0 +1,37 @@
+name: mcp tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "mcp/**"
+      - "tracks/**"
+      - "references/**"
+      - ".github/workflows/mcp-tests.yml"
+  pull_request:
+    paths:
+      - "mcp/**"
+      - "tracks/**"
+      - "references/**"
+      - ".github/workflows/mcp-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  mcp-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mcp
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: pytest
+        run: uv run pytest tests/ -v

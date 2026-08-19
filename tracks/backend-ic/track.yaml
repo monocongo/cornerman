@@ -52,7 +52,8 @@ phases:
     persona: references/03-architect-hld.md
     mode: async_take_home
     announce: "System design next — I'll give you a problem and answer clarifying questions. You go design it (diagram + written approach), upload the diagram when done, and then we walk through it together as a staff architect."
-    question_bank: references/question-banks/system-design.md
+    question_banks:
+      - references/question-banks/system-design.md
     time_budget_minutes: { junior: 30, mid: 45, senior: 60, staff: 75 }
 
   - id: lld

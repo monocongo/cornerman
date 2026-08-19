@@ -67,14 +67,16 @@ phases:
     persona: tracks/data-ai-leadership/personas/platform-architecture.md
     mode: async_take_home
     announce: "Data platform architecture next — I'll give you a problem and answer clarifying questions with real numbers. You go design it (diagram + written approach: ingest through serving), upload it when done, and then we walk through it together."
-    question_bank: tracks/data-ai-leadership/question-banks/data-platform.md
+    question_banks:
+      - tracks/data-ai-leadership/question-banks/data-platform.md
     time_budget_minutes: { junior: 30, mid: 45, senior: 60, staff: 75, head: 90 }
 
   - id: ai_governance
     persona: tracks/data-ai-leadership/personas/ai-systems-governance.md
     mode: live
     announce: "Same platform — now let's zoom into how AI/ML systems run on top of it, and how you'd govern that."
-    question_bank: tracks/data-ai-leadership/question-banks/ai-ml-governance.md
+    question_banks:
+      - tracks/data-ai-leadership/question-banks/ai-ml-governance.md
 
   - id: report
     persona: references/05-evaluator.md

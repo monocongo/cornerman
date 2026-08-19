@@ -1,0 +1,33 @@
+name: dbt build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "artifact/insurance-reference-model/**"
+      - ".github/workflows/dbt-build.yml"
+  pull_request:
+    paths:
+      - "artifact/insurance-reference-model/**"
+      - ".github/workflows/dbt-build.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  dbt-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: artifact/insurance-reference-model
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: dbt build
+        run: uv run dbt build --profiles-dir .

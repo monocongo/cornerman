@@ -1,0 +1,136 @@
+# Track: data-ai-leadership
+#
+# Mock interview for Head of Data, Head of AI, VP/Director Data & Analytics,
+# and similar data-platform leadership roles, with an insure-tech domain
+# pack. Reuses the shared intake/experience/JD-alignment personas from
+# references/ — the parts of Cornerman that aren't role-specific — and
+# swaps the coding/HLD/LLD trio for three rounds built for this candidate:
+# data modeling, data platform architecture, and AI/ML systems + governance.
+#
+# Leadership altitude (cost, vendors, regulators, org constraints) is
+# threaded through the technical rounds as constraint injections rather than
+# run as a separate behavioral round — see calibration.md for the rationale.
+
+track: data-ai-leadership
+display_name: "Head of Data / AI (insure-tech)"
+default: false
+
+selection:
+  keywords:
+    - head of data
+    - head of ai
+    - chief data officer
+    - "cdo"
+    - vp data
+    - vp analytics
+    - vp engineering, data
+    - director of data
+    - director of analytics
+    - director of data engineering
+    - data platform lead
+    - data engineering lead
+    - insure-tech
+    - insurtech
+    - actuarial data
+
+seniority_tiers: [junior, mid, senior, staff, head]
+calibration: references/seniority-calibration.md
+calibration_overlay: tracks/data-ai-leadership/calibration.md
+
+phases:
+  - id: intake
+    persona: references/00-intake-analyst.md
+    mode: live
+    announce: null
+
+  - id: experience
+    persona: references/01-experience-interviewer.md
+    mode: live
+    announce: "Let's start with your background — I'll walk through your projects."
+
+  - id: jd_alignment
+    persona: references/02-jd-alignment.md
+    mode: live
+    announce: "Now let's connect your background to what this role actually needs."
+
+  - id: data_modeling
+    persona: tracks/data-ai-leadership/personas/data-modeling.md
+    mode: async_take_home
+    announce: "Next is a data modeling round. I'll give you a business scenario; you'll go model it — grain, ERD, DDL or dbt sketch — and paste or upload it when done. Then we'll walk through your choices together."
+    catalog: data-modeling
+    question_banks:
+      - tracks/data-ai-leadership/question-banks/data-modeling.md
+      - tracks/data-ai-leadership/question-banks/sql-analytics.md
+    time_budget_minutes: { junior: 45, mid: 60, senior: 75, staff: 90, head: 90 }
+
+  - id: platform_architecture
+    persona: tracks/data-ai-leadership/personas/platform-architecture.md
+    mode: async_take_home
+    announce: "Data platform architecture next — I'll give you a problem and answer clarifying questions with real numbers. You go design it (diagram + written approach: ingest through serving), upload it when done, and then we walk through it together."
+    question_banks:
+      - tracks/data-ai-leadership/question-banks/data-platform.md
+    time_budget_minutes: { junior: 30, mid: 45, senior: 60, staff: 75, head: 90 }
+
+  - id: ai_governance
+    persona: tracks/data-ai-leadership/personas/ai-systems-governance.md
+    mode: live
+    announce: "Same platform — now let's zoom into how AI/ML systems run on top of it, and how you'd govern that."
+    question_banks:
+      - tracks/data-ai-leadership/question-banks/ai-ml-governance.md
+
+  - id: report
+    persona: references/05-evaluator.md
+    mode: live
+    announce: "That's the interview. Give me a moment to write up feedback."
+
+# Rubric dimensions, in report order.
+rubric:
+  - id: technical_depth
+    name: "Technical depth"
+    scored_by_phase: experience
+  - id: impact_ownership
+    name: "Impact & ownership"
+    scored_by_phase: experience
+  - id: data_modeling
+    name: "Data modeling"
+    scored_by_phase: data_modeling
+  - id: platform_architecture
+    name: "Data platform architecture"
+    scored_by_phase: platform_architecture
+  - id: ai_ml_systems
+    name: "AI/ML systems"
+    scored_by_phase: ai_governance
+  - id: governance_risk
+    name: "Governance & risk"
+    scored_by_phase: ai_governance
+  - id: insurance_domain_fluency
+    name: "Insurance domain fluency"
+    scored_by_phase: all
+  - id: leadership_altitude
+    name: "Leadership altitude"
+    scored_by_phase: all
+  - id: communication
+    name: "Communication & structured thinking"
+    scored_by_phase: all
+  - id: jd_fit
+    name: "JD fit"
+    scored_by_phase: jd_alignment
+
+single_phase_scoring:
+  experience: [technical_depth, impact_ownership, communication]
+  data_modeling: [data_modeling, communication]
+  platform_architecture: [platform_architecture, leadership_altitude, communication]
+  ai_governance: [ai_ml_systems, governance_risk, communication]
+  jd_alignment: [jd_fit]
+
+question_banks:
+  - tracks/data-ai-leadership/question-banks/data-modeling.md
+  - tracks/data-ai-leadership/question-banks/sql-analytics.md
+  - tracks/data-ai-leadership/question-banks/data-platform.md
+  - tracks/data-ai-leadership/question-banks/ai-ml-governance.md
+
+domain_packs:
+  - tracks/data-ai-leadership/domain-packs/pnc-personal-lines.md
+  - tracks/data-ai-leadership/domain-packs/health.md
+
+report_template: assets/report-template.md

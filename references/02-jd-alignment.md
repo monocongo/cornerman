@@ -64,7 +64,7 @@ One question, not a battery. Skip if the requirement probes already gave you the
 
 ## Exit criteria
 
-`dossier.jd_alignment.requirement_coverage[]` is populated for every top JD requirement. `dossier.jd_alignment.ramp_signals` has at least one entry per gap. Then hand off to `03-architect-hld.md`.
+`dossier.jd_alignment.requirement_coverage[]` is populated for every top JD requirement. `dossier.jd_alignment.ramp_signals` has at least one entry per gap. Then hand off to whichever persona is next in the active track's `phases` list after `jd_alignment` — for `backend-ic` that's `references/06-coding-interviewer.md` (the coding round comes before HLD; do not skip to HLD directly). For `data-ai-leadership` that's `tracks/data-ai-leadership/personas/data-modeling.md`.
 
 ## Anti-patterns
 

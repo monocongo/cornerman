@@ -1,0 +1,118 @@
+version: 2
+
+models:
+  - name: stg_pnc__party
+    description: "Grain: one row per party."
+    columns:
+      - name: party_id
+        tests: [not_null, unique]
+
+  - name: stg_pnc__policy
+    description: "Grain: one row per policy (stable policy_number across renewals)."
+    columns:
+      - name: policy_id
+        tests: [not_null, unique]
+
+  - name: stg_pnc__policy_version
+    description: "Grain: one row per policy per endorsement-effective period."
+    columns:
+      - name: policy_version_id
+        tests: [not_null, unique]
+      - name: policy_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_pnc__policy')
+                field: policy_id
+
+  - name: stg_pnc__coverage
+    description: "Grain: one row per policy version per coverage type."
+    columns:
+      - name: coverage_id
+        tests: [not_null, unique]
+      - name: policy_version_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_pnc__policy_version')
+                field: policy_version_id
+      - name: coverage_type
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['bodily_injury_liability', 'property_damage_liability', 'collision', 'comprehensive']
+
+  - name: stg_pnc__policy_party_role
+    description: "Grain: one row per party per policy-or-claim per role."
+    columns:
+      - name: policy_party_role_id
+        tests: [not_null, unique]
+      - name: party_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_pnc__party')
+                field: party_id
+      - name: policy_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_pnc__policy')
+                field: policy_id
+      - name: role_type
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['named_insured', 'additional_insured', 'driver', 'claimant', 'beneficiary']
+
+  - name: stg_pnc__claim
+    description: "Grain: one row per claim."
+    columns:
+      - name: claim_id
+        tests: [not_null, unique]
+      - name: policy_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_pnc__policy')
+                field: policy_id
+      - name: claimant_party_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_pnc__party')
+                field: party_id
+      - name: status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['open', 'closed']
+
+  - name: stg_pnc__claim_transaction
+    description: "Grain: one row per claim per coverage per transaction per booked_date."
+    columns:
+      - name: claim_transaction_id
+        tests: [not_null, unique]
+      - name: claim_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_pnc__claim')
+                field: claim_id
+      - name: coverage_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_pnc__coverage')
+                field: coverage_id
+      - name: transaction_type
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['reserve_set', 'reserve_change', 'payment_issued', 'payment_voided', 'reopened']

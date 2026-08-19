@@ -1,0 +1,110 @@
+# Track: backend-ic
+#
+# The original Cornerman interview, unchanged. This file exists so the track
+# mechanism has a reference implementation and so `backend-ic` is selectable
+# on equal footing with other tracks — it does not change what this track
+# does. If you're diffing behavior after the track refactor landed, this file
+# should reproduce SKILL.md's old hardcoded phase table exactly.
+
+track: backend-ic
+display_name: "Backend / Software Engineering (IC)"
+default: true
+
+selection:
+  keywords:
+    - backend
+    - software engineer
+    - swe
+    - full stack
+    - fullstack
+    - platform engineer
+    - infrastructure engineer
+    - site reliability
+    - sre
+
+seniority_tiers: [junior, mid, senior, staff]
+calibration: references/seniority-calibration.md
+
+phases:
+  - id: intake
+    persona: references/00-intake-analyst.md
+    mode: live
+    announce: null
+
+  - id: experience
+    persona: references/01-experience-interviewer.md
+    mode: live
+    announce: "Let's start with your background — I'll walk through your projects."
+
+  - id: jd_alignment
+    persona: references/02-jd-alignment.md
+    mode: live
+    announce: "Now let's connect your background to what this role actually needs."
+
+  - id: coding
+    persona: references/06-coding-interviewer.md
+    mode: async_take_home
+    announce: "Next is a coding round. I'll give you one problem; you'll go solve it and paste your code when done. Then we'll walk through it together."
+    catalog: blind75
+    time_budget_minutes: { junior: 45, mid: 45, senior: 60, staff: 60 }
+
+  - id: hld
+    persona: references/03-architect-hld.md
+    mode: async_take_home
+    announce: "System design next — I'll give you a problem and answer clarifying questions. You go design it (diagram + written approach), upload the diagram when done, and then we walk through it together as a staff architect."
+    question_banks:
+      - references/question-banks/system-design.md
+    time_budget_minutes: { junior: 30, mid: 45, senior: 60, staff: 75 }
+
+  - id: lld
+    persona: references/04-architect-lld.md
+    mode: live
+    announce: "Same system, zooming in — let's grind the low-level detail."
+
+  - id: report
+    persona: references/05-evaluator.md
+    mode: live
+    announce: "That's the interview. Give me a moment to write up feedback."
+
+# Rubric dimensions, in report order. `scored_by_phase` documents which phase
+# normally writes the score via `mcp__cornerman__score_save`; the evaluator
+# still owns the actual scoring.
+rubric:
+  - id: technical_depth
+    name: "Technical depth"
+    scored_by_phase: experience
+  - id: impact_ownership
+    name: "Impact & ownership"
+    scored_by_phase: experience
+  - id: coding
+    name: "Coding"
+    scored_by_phase: coding
+  - id: hld
+    name: "System design (HLD)"
+    scored_by_phase: hld
+  - id: lld
+    name: "Low-level design (LLD)"
+    scored_by_phase: lld
+  - id: communication
+    name: "Communication & structured thinking"
+    scored_by_phase: all
+  - id: jd_fit
+    name: "JD fit"
+    scored_by_phase: jd_alignment
+
+# Which rubric dimensions a single-phase invocation of each phase scores.
+# Mirrors references/05-evaluator.md's "Single-phase reports" section.
+single_phase_scoring:
+  experience: [technical_depth, impact_ownership, communication]
+  coding: [coding, communication]
+  hld: [hld, communication]
+  lld: [lld, communication]
+  jd_alignment: [jd_fit]
+
+question_banks:
+  - references/question-banks/backend.md
+  - references/question-banks/ml-llm.md
+  - references/question-banks/system-design.md
+  - references/question-banks/coding-blind75.md
+
+report_template: assets/report-template.md

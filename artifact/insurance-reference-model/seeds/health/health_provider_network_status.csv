@@ -1,0 +1,16 @@
+network_status_id,provider_id,network_status,effective_date,end_date
+NS-00001,PRV-0001,in_network,2023-01-01,
+NS-00002,PRV-0002,in_network,2023-01-01,
+NS-00003,PRV-0003,in_network,2023-01-01,2024-10-13
+NS-00004,PRV-0003,out_of_network,2024-10-13,
+NS-00005,PRV-0004,in_network,2023-01-01,2024-07-26
+NS-00006,PRV-0004,out_of_network,2024-07-26,
+NS-00007,PRV-0005,in_network,2023-01-01,
+NS-00008,PRV-0006,in_network,2023-01-01,
+NS-00009,PRV-0007,in_network,2023-01-01,
+NS-00010,PRV-0008,in_network,2023-01-01,
+NS-00011,PRV-0009,in_network,2023-01-01,
+NS-00012,PRV-0010,in_network,2023-01-01,
+NS-00013,PRV-0011,in_network,2023-01-01,
+NS-00014,PRV-0012,in_network,2023-01-01,2025-01-02
+NS-00015,PRV-0012,terminated,2025-01-02,

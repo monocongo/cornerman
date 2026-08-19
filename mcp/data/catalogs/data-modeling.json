@@ -1,0 +1,101 @@
+{
+  "tier_difficulties": {
+    "junior": ["junior"],
+    "mid": ["mid"],
+    "senior": ["senior"],
+    "staff": ["staff"],
+    "head": ["head"]
+  },
+  "problems": [
+    {
+      "id": "pnc-policy-endorsement-dimension",
+      "name": "Policy dimension with mid-term endorsements",
+      "domain": "pnc_personal_lines",
+      "difficulty": "junior",
+      "time_budget_minutes": 45,
+      "summary": "A P&C carrier's policy admin system lets customers change coverage mid-term (add a driver, raise a limit, add collision coverage). Design a policy dimension that lets reporting always show the coverage that was actually in force on any given date, including today.",
+      "key_challenge": "SCD Type 2 on the policy/coverage dimension; joining facts on effective date, not is_current."
+    },
+    {
+      "id": "health-member-eligibility-dimension",
+      "name": "Member eligibility spans",
+      "domain": "health",
+      "difficulty": "junior",
+      "time_budget_minutes": 45,
+      "summary": "A health plan needs to know, for any given date, which members were actively covered and under which benefit plan. Members can lapse and re-enroll, and can change plans at open enrollment. Design a model that answers 'was member X covered on date Y, under which plan' correctly.",
+      "key_challenge": "Span-based (start/end date) eligibility modeling; gaps and re-enrollment; SCD-style reasoning without a single 'current' flag."
+    },
+    {
+      "id": "pnc-claim-and-policy-join",
+      "name": "Claim + policy data model for a single-coverage claims workflow",
+      "domain": "pnc_personal_lines",
+      "difficulty": "mid",
+      "time_budget_minutes": 60,
+      "summary": "Design the data model connecting claims to the policy they were filed against, for a single-coverage auto claims team (collision only, no multi-coverage complexity yet). The team needs to report claim counts and paid amounts by the coverage terms in force at the time of loss, not the terms in force today.",
+      "key_challenge": "Cross-entity join between claim and policy at the correct point in time; recognizing that 'current policy terms' is the wrong join key."
+    },
+    {
+      "id": "health-claim-header-and-lines",
+      "name": "Claim header vs. claim line adjudication model",
+      "domain": "health",
+      "difficulty": "mid",
+      "time_budget_minutes": 60,
+      "summary": "A single health claim (encounter) can contain several billed service lines, each independently priced and adjudicated — some lines pay, some deny, on the same claim. Design a model supporting adjudication-status reporting that doesn't lose per-line outcomes.",
+      "key_challenge": "Recognizing claim header and claim line are two different grains; not collapsing per-line status into a single claim-level status."
+    },
+    {
+      "id": "pnc-claims-subject-area-bitemporal",
+      "name": "Claims subject area for finance/actuarial reporting",
+      "domain": "pnc_personal_lines",
+      "difficulty": "senior",
+      "time_budget_minutes": 75,
+      "summary": "Design the core claims subject area for a P&C carrier's finance and actuarial reporting. It must support reproducing a prior quarter's reserve figures exactly, and must correctly handle claims that are reopened after being closed, with new reserve estimates booked well after the original loss.",
+      "key_challenge": "Bitemporality: loss date vs. report date vs. booked date; late-arriving and restated facts; reopened claims without mutating history."
+    },
+    {
+      "id": "health-as-of-service-date-readjudication",
+      "name": "Historical claim re-adjudication, as of service date",
+      "domain": "health",
+      "difficulty": "senior",
+      "time_budget_minutes": 75,
+      "summary": "An auditor wants to re-adjudicate a batch of claims from six months ago exactly as they should have been adjudicated at the time: using the member's eligibility as of the service date, the provider's network status as of the service date, and the benefit plan design as of the service date — none of which are today's values.",
+      "key_challenge": "Bitemporal reasoning applied to three separate slowly-changing dimensions at once (eligibility, provider network, benefit design), all keyed to service date, not today."
+    },
+    {
+      "id": "pnc-star-vs-data-vault-multiline",
+      "name": "Cross-line claims and policy platform: star vs. Data Vault",
+      "domain": "pnc_personal_lines",
+      "difficulty": "staff",
+      "time_budget_minutes": 90,
+      "summary": "The carrier is adding a second line of business (home, alongside existing auto) on a new policy admin system, with more source systems expected within the next two years as older regional systems get migrated. Design the core marts serving claims and policy reporting across both lines, and choose a modeling paradigm (star schema, Data Vault, or a wide/OBT approach) you're prepared to defend.",
+      "key_challenge": "Explicit tradeoff call between modeling paradigms under a real constraint (source system churn), not a stated preference."
+    },
+    {
+      "id": "health-risk-adjustment-and-phi-boundary",
+      "name": "Claims analytics + CMS risk-adjustment (HCC) with a PHI boundary",
+      "domain": "health",
+      "difficulty": "staff",
+      "time_budget_minutes": 90,
+      "summary": "Design a data model that supports both (a) a cost-analytics team that needs fast, broadly-accessible dashboards on claims spend, and (b) a compliance-owned pipeline submitting HCC risk-adjustment data to CMS on a periodic cycle. Diagnosis codes and other PHI must not leak into the broadly-accessible analytics layer.",
+      "key_challenge": "A concrete, mechanism-level PHI boundary (a specific mart, masking/tokenization step, or access-control layer) between two consumers with very different access needs on the same underlying claims data."
+    },
+    {
+      "id": "pnc-head-audit-vs-actuarial",
+      "name": "Claims platform under a dual audit and actuarial mandate",
+      "domain": "pnc_personal_lines",
+      "difficulty": "head",
+      "time_budget_minutes": 90,
+      "summary": "Same design surface as the staff-tier cross-line claims platform, with one addition: actuarial needs point-in-time-correct history for reserving studies, and a regulator has asked the carrier to prove that no historical claim record was silently altered. You own the call on how the platform satisfies both without becoming two incompatible systems.",
+      "key_challenge": "Naming the tension between a queryable, evolvable mart and a provably immutable audit trail, and resolving it with a concrete architecture (e.g., append-only ledger as source of truth, mart as a rebuildable projection) plus a cost/ownership story for who maintains which piece."
+    },
+    {
+      "id": "health-head-regulator-and-cost-pressure",
+      "name": "Risk-adjustment platform under regulator audit and cost pressure",
+      "domain": "health",
+      "difficulty": "head",
+      "time_budget_minutes": 90,
+      "summary": "Same design surface as the staff-tier risk-adjustment-and-PHI-boundary problem, with one addition: CMS has flagged the plan for an audit of HCC submission accuracy, and finance has asked the data org to justify or cut the cost of the compliance pipeline this owns. You own both the audit-readiness call and the cost call, and they pull in opposite directions.",
+      "key_challenge": "Balancing audit-defensibility (which tends to want more retained history, more lineage, more redundancy) against a real cost constraint, with a specific decision on what gets cut and what's non-negotiable, defended on both fronts."
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+version: 2
+
+seeds:
+  - name: pnc_policy_party_role
+    config:
+      column_types:
+        policy_party_role_id: varchar
+        party_id: varchar
+        policy_id: varchar
+        claim_id: varchar
+        role_type: varchar
+        effective_date: date
+        end_date: varchar

@@ -1,0 +1,37 @@
+name: 'insurance_reference_model'
+version: '1.0.0'
+config-version: 2
+profile: 'insurance_reference_model'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+analysis-paths: ["analyses"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+seeds:
+  insurance_reference_model:
+    +schema: seed
+    pnc:
+      +schema: seed_pnc
+    health:
+      +schema: seed_health
+
+models:
+  insurance_reference_model:
+    staging:
+      +materialized: view
+      pnc:
+        +schema: staging_pnc
+      health:
+        +schema: staging_health
+    marts:
+      +materialized: table
+      shared:
+        +schema: marts
+      pnc:
+        +schema: marts_pnc
+      health:
+        +schema: marts_health

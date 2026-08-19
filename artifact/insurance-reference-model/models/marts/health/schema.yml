@@ -1,0 +1,281 @@
+version: 2
+
+models:
+  - name: dim_provider
+    description: "Grain: one row per provider per network-status-effective period."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: network_status_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: provider_id
+        data_type: varchar
+        tests: [not_null]
+      - name: npi
+        data_type: varchar
+        tests: [not_null]
+      - name: provider_name
+        data_type: varchar
+        tests: [not_null]
+      - name: specialty
+        data_type: varchar
+        tests: [not_null]
+      - name: provider_type
+        data_type: varchar
+        tests: [not_null]
+      - name: network_status
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['in_network', 'out_of_network', 'terminated']
+      - name: valid_from
+        data_type: date
+        tests: [not_null]
+      - name: valid_to
+        data_type: date
+      - name: is_current
+        data_type: boolean
+        tests: [not_null]
+
+  - name: dim_benefit_plan
+    description: "Grain: one row per plan per plan-year."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: benefit_plan_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: plan_name
+        data_type: varchar
+        tests: [not_null]
+      - name: plan_year
+        data_type: integer
+        tests: [not_null]
+      - name: plan_type
+        data_type: varchar
+        tests: [not_null]
+      - name: deductible_individual
+        data_type: decimal(10,2)
+        tests: [not_null]
+      - name: oop_max_individual
+        data_type: decimal(10,2)
+        tests: [not_null]
+      - name: valid_from
+        data_type: date
+        tests: [not_null]
+      - name: valid_to
+        data_type: date
+        tests: [not_null]
+      - name: is_current
+        data_type: boolean
+        tests: [not_null]
+
+  - name: dim_member
+    description: "Grain: one row per member, current attributes only."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: member_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: first_name
+        data_type: varchar
+        meta: {phi: true}
+      - name: last_name
+        data_type: varchar
+        meta: {phi: true}
+      - name: date_of_birth
+        data_type: date
+        meta: {phi: true}
+      - name: gender
+        data_type: varchar
+        meta: {phi: true}
+      - name: subscriber_id
+        data_type: varchar
+        tests: [not_null]
+        meta: {phi: true}
+      - name: relationship_to_subscriber
+        data_type: varchar
+        tests: [not_null]
+      - name: state
+        data_type: varchar
+
+  - name: fct_eligibility_span
+    description: "Grain: one row per member per continuous coverage span."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: eligibility_span_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: member_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_member')
+                field: member_id
+      - name: benefit_plan_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_benefit_plan')
+                field: benefit_plan_id
+      - name: start_date
+        data_type: date
+        tests: [not_null]
+      - name: end_date
+        data_type: date
+      - name: span_reason
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['new_enrollment', 'renewal', 'reenrollment', 'termination']
+      - name: is_currently_active
+        data_type: boolean
+        tests: [not_null]
+
+  - name: fct_authorization
+    description: "Grain: one row per authorization request. valid_from/valid_to is independent of eligibility and service date."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: authorization_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: member_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_member')
+                field: member_id
+      - name: provider_id
+        data_type: varchar
+        tests: [not_null]
+      - name: service_type
+        data_type: varchar
+        tests: [not_null]
+      - name: requested_date
+        data_type: date
+        tests: [not_null]
+      - name: valid_from
+        data_type: date
+        tests: [not_null]
+      - name: valid_to
+        data_type: date
+        tests: [not_null]
+      - name: status
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['approved', 'denied', 'expired']
+
+  - name: fct_health_claim_line
+    description: "Grain: one row per claim line, as submitted. provider_network_status_at_service and benefit_plan_id_at_service are resolved as of service_date via as_of_join."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: claim_line_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: claim_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_health__claim')
+                field: claim_id
+      - name: line_number
+        data_type: integer
+        tests: [not_null]
+      - name: procedure_code
+        data_type: varchar
+        tests: [not_null]
+        meta: {phi: true}
+      - name: diagnosis_code
+        data_type: varchar
+        tests: [not_null]
+        meta: {phi: true}
+      - name: billed_amount
+        data_type: decimal(10,2)
+        tests: [not_null]
+      - name: service_date
+        data_type: date
+        tests: [not_null]
+      - name: member_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_member')
+                field: member_id
+      - name: provider_id
+        data_type: varchar
+        tests: [not_null]
+      - name: claim_type
+        data_type: varchar
+        tests: [not_null]
+      - name: provider_network_status_at_service
+        data_type: varchar
+      - name: benefit_plan_id_at_service
+        data_type: varchar
+      - name: benefit_plan_type_at_service
+        data_type: varchar
+
+  - name: fct_adjudication_event
+    description: "Grain: one row per claim line, per status-transition event, per booked_date. Append-only ledger; source of the development-triangle demo query. No PHI columns -- enforced by a dbt test."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: adjudication_event_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: claim_line_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_health_claim_line')
+                field: claim_line_id
+      - name: claim_id
+        data_type: varchar
+        tests: [not_null]
+      - name: event_type
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['received', 'pended', 'approved', 'denied', 'paid', 'adjusted']
+      - name: booked_date
+        data_type: date
+        tests: [not_null]
+      - name: paid_amount
+        data_type: decimal(10,2)
+      - name: denial_reason
+        data_type: varchar
+      - name: service_date
+        data_type: date
+        tests: [not_null]

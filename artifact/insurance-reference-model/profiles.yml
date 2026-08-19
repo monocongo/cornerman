@@ -1,0 +1,7 @@
+insurance_reference_model:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: 'insurance_reference_model.duckdb'
+      threads: 4

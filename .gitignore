@@ -1,1 +1,14 @@
 .DS_Store
+
+# Python (mcp/ subproject)
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# dbt / DuckDB (artifact/insurance-reference-model/)
+target/
+dbt_packages/
+logs/
+*.duckdb

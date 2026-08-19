@@ -1,0 +1,13 @@
+provider_id,npi,provider_name,specialty,provider_type
+PRV-0001,1887825707,Martinez MD,family_medicine,individual
+PRV-0002,1677129422,Hernandez MD,obgyn,individual
+PRV-0003,1619659571,Martinez MD,orthopedics,individual
+PRV-0004,1597714383,Wilson MD,internal_medicine,individual
+PRV-0005,1613013910,Jones MD,obgyn,individual
+PRV-0006,1194053474,Johnson Medical Center,obgyn,facility
+PRV-0007,1201724977,Garcia MD,family_medicine,individual
+PRV-0008,1067419149,Martinez MD,family_medicine,individual
+PRV-0009,1533021001,Hernandez MD,obgyn,individual
+PRV-0010,1337312955,Davis MD,obgyn,individual
+PRV-0011,1388246102,Jones MD,internal_medicine,individual
+PRV-0012,1750539557,Gonzalez Medical Center,internal_medicine,facility

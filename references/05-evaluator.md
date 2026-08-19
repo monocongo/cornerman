@@ -26,13 +26,16 @@ The scores don't change with the dial. Only the tone does.
 
 1. Call `mcp__cornerman__session_get(session_id)` — this returns the full dossier, all rounds, and all saved scores. Do not rely on conversation memory; the persisted state is authoritative (some scores may have come from auto-grade callbacks that fired in a separate conversation).
 2. Call `mcp__cornerman__sessions_list(candidate.id)` — if prior sessions exist, extract their per-dimension scores. Use these for **trend commentary** in the report: "coding trended 2 → 3 → 4 across three sessions" is a much better line than a lone score.
+3. Read `dossier.plan.track` and load that track's `track.yaml` (default `tracks/backend-ic/track.yaml` if unset — sessions started before tracks existed have no `plan.track`). **Its `rubric` list, not the table below, is authoritative for this session** — the table below is the `backend-ic` rubric, shown as the reference case. If a different track is active, substitute its dimensions, its dimension count, and its `single_phase_scoring` map wherever this file says "seven dimensions" or lists the backend-ic rubric by name.
 
 ## What you do NOT do
 
 - Ask new interview questions. The interview is over. If the dossier has holes, the report can name them ("didn't reach LLD, so I can't score data modeling") — do not fill them in with fresh questions.
 - Score dimensions you don't have evidence for. Mark them "not assessed" instead of guessing.
 
-## Rubric — seven dimensions
+## Rubric — backend-ic reference case
+
+This table is `tracks/backend-ic/track.yaml`'s rubric, seven dimensions, shown as the default. **A different track supplies a different rubric of a different length** — read it from the loaded `track.yaml`, don't assume seven. The mechanics below (score each 1–5, cite evidence, don't average) apply to every track's rubric unchanged; only the dimension list and count vary.
 
 Score each **1–5**, integer, with a one-line justification tied to specific evidence from the dossier. Do not average — the reader will look at individual dimensions.
 
@@ -60,7 +63,7 @@ For the **coding** dimension specifically:
 Fill out `assets/report-template.md` exactly. Sections in order:
 
 1. **Snapshot** — role targeted, assessed level, one-line verdict.
-2. **Scorecard** — six dimensions, 1–5, one-line justification each.
+2. **Scorecard** — the active track's rubric dimensions (seven for `backend-ic`; ten for `data-ai-leadership` — see that track's `track.yaml`), 1–5, one-line justification each.
 3. **Phase notes** — what happened in each phase reached. One short paragraph per phase.
 4. **Top 3 strengths** — evidence-tied, specific moments.
 5. **Top 3 gaps** — evidence-tied, specific moments.
@@ -98,12 +101,14 @@ If the candidate ended early:
 If the session was single-phase (e.g., only HLD):
 
 - Skip the phase notes for unrun phases.
-- Score only the relevant dimensions:
-  - Experience → dims 1, 2, 6
-  - Coding → dims 3, 6
-  - HLD → dims 4, 6
-  - LLD → dims 5, 6
-  - JD alignment → dim 7
+- Score only the relevant dimensions: look up the phase in the active track's `single_phase_scoring` map in `track.yaml`. For `backend-ic` reference:
+  - Experience → technical_depth, impact_ownership, communication
+  - Coding → coding, communication
+  - HLD → hld, communication
+  - LLD → lld, communication
+  - JD alignment → jd_fit
+
+  (`data-ai-leadership` has its own map — e.g. `platform_architecture` → platform_architecture, leadership_altitude, communication. Don't reuse the backend-ic list on a different track.)
 - Study plan still applies, scoped to what was tested.
 - Hire signal is scoped: "For a system design round specifically…" — do not extrapolate to the whole loop.
 

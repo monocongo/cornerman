@@ -1,0 +1,284 @@
+version: 2
+
+models:
+  - name: dim_policy
+    description: "Grain: one row per policy per endorsement-effective period."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: policy_version_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: policy_id
+        data_type: varchar
+        tests: [not_null]
+      - name: policy_number
+        data_type: varchar
+        tests: [not_null]
+      - name: line_of_business
+        data_type: varchar
+        tests: [not_null]
+      - name: policy_status
+        data_type: varchar
+        tests: [not_null]
+      - name: version_number
+        data_type: integer
+        tests: [not_null]
+      - name: change_reason
+        data_type: varchar
+        tests: [not_null]
+      - name: term_premium_amount
+        data_type: decimal(10,2)
+        tests: [not_null]
+      - name: garaging_state
+        data_type: varchar
+        tests: [not_null]
+      - name: valid_from
+        data_type: date
+        tests: [not_null]
+      - name: valid_to
+        data_type: date
+      - name: is_current
+        data_type: boolean
+        tests: [not_null]
+
+  - name: dim_coverage
+    description: "Grain: one row per policy version per coverage type."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: coverage_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: policy_version_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_policy')
+                field: policy_version_id
+      - name: policy_id
+        data_type: varchar
+        tests: [not_null]
+      - name: coverage_type
+        data_type: varchar
+        tests: [not_null]
+      - name: limit_amount
+        data_type: decimal(12,2)
+        tests: [not_null]
+      - name: deductible_amount
+        data_type: decimal(10,2)
+        tests: [not_null]
+      - name: valid_from
+        data_type: date
+        tests: [not_null]
+      - name: valid_to
+        data_type: date
+      - name: is_current
+        data_type: boolean
+        tests: [not_null]
+
+  - name: dim_insured
+    description: "Grain: one row per party, current attributes only."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: party_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: first_name
+        data_type: varchar
+        meta: {pii: true}
+      - name: last_name
+        data_type: varchar
+        meta: {pii: true}
+      - name: date_of_birth
+        data_type: date
+        meta: {pii: true}
+      - name: ssn
+        data_type: varchar
+        meta: {pii: true}
+      - name: credit_score
+        data_type: integer
+        meta: {pii: true}
+      - name: state
+        data_type: varchar
+
+  - name: fct_policy_party_role
+    description: "Grain: one row per party, per policy or claim, per role."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: policy_party_role_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: party_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_insured')
+                field: party_id
+      - name: policy_id
+        data_type: varchar
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_pnc__policy')
+                field: policy_id
+      - name: claim_id
+        data_type: varchar
+        tests:
+          - relationships:
+              arguments:
+                to: ref('fct_claim')
+                field: claim_id
+      - name: role_type
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['named_insured', 'additional_insured', 'driver', 'claimant', 'beneficiary']
+      - name: effective_date
+        data_type: date
+        tests: [not_null]
+      - name: end_date
+        data_type: date
+
+  - name: fct_claim
+    description: "Grain: one row per claim. policy_version_id_at_loss is resolved as of loss_date via as_of_join, never via is_current."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: claim_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: policy_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_pnc__policy')
+                field: policy_id
+      - name: claimant_party_id
+        data_type: varchar
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_insured')
+                field: party_id
+      - name: loss_date
+        data_type: date
+        tests: [not_null]
+      - name: report_date
+        data_type: date
+        tests: [not_null]
+      - name: report_lag_days
+        data_type: bigint
+        tests: [not_null]
+      - name: loss_type
+        data_type: varchar
+        tests: [not_null]
+      - name: status
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['open', 'closed']
+      - name: catastrophe_flag
+        data_type: boolean
+        tests: [not_null]
+      - name: policy_version_id_at_loss
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_policy')
+                field: policy_version_id
+      - name: policy_number
+        data_type: varchar
+        tests: [not_null]
+      - name: garaging_state_at_loss
+        data_type: varchar
+        tests: [not_null]
+
+  - name: fct_claim_transaction
+    description: "Grain: one row per claim, per coverage, per transaction, per booked_date. Append-only ledger; source of the loss-triangle demo query."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: claim_transaction_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: claim_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_claim')
+                field: claim_id
+      - name: coverage_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_coverage')
+                field: coverage_id
+      - name: coverage_type
+        data_type: varchar
+        tests: [not_null]
+      - name: policy_id
+        data_type: varchar
+        tests: [not_null]
+      - name: transaction_type
+        data_type: varchar
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['reserve_set', 'reserve_change', 'payment_issued', 'payment_voided', 'reopened']
+      - name: booked_date
+        data_type: date
+        tests: [not_null]
+      - name: amount
+        data_type: decimal(12,2)
+        tests: [not_null]
+      - name: loss_date
+        data_type: date
+        tests: [not_null]
+      - name: report_date
+        data_type: date
+        tests: [not_null]
+
+  - name: fct_premium_earned
+    description: "Grain: one row per policy, per coverage, per day of accrual. No PII columns -- enforced by a dbt test."
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: policy_id
+        data_type: varchar
+        tests: [not_null]
+      - name: accrual_date
+        data_type: date
+        tests: [not_null]
+      - name: coverage_type
+        data_type: varchar
+        tests: [not_null]
+      - name: earned_premium_amount
+        data_type: decimal(18,2)
+        tests: [not_null]
